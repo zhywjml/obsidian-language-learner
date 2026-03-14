@@ -194,22 +194,22 @@ Play local audio files while reading:
 <p align="center">
   <img src="image.png" alt="Reading mode" width="600">
 </p>
-
 <p align="center">
-  <img src="image-1.png" alt="Word list panel" width="600">
+  <img src="image-1.png" alt="Word list panel" width="400">
 </p>
 
 <p align="center">
-  <img src="image-2.png" alt="Offline dictionary panel" width="600">
+  <img src="image-2.png" alt="Offline dictionary panel" width="400">
 </p>
+
 
 
 ### Tested Dictionaries
 
 | No. | Name | Link | Screenshot | Status |
 |-----|------|------|------------|--------|
-| 1 | [En-Zh] Oxford Advanced Learner's Dictionary 7th Edition (Bilingual) | [Download](https://mdx.mdict.org/%E6%8C%89%E8%AF%8D%E5%85%B8%E8%AF%AD%E7%A7%8D%E6%9D%A5%E5%88%86%E7%B1%BB/%E8%8B%B1%E8%AF%AD/%E7%B3%BB%E5%88%97%E8%AF%8D%E5%85%B8/%E7%89%9B%E6%B4%A5/%5B%E8%8B%B1-%E6%B1%89%5D%20%E2%97%86%E3%80%90%E7%89%9B%E6%B4%A5%E9%AB%98%E9%98%B6%E5%AD%A6%E4%B9%A0%E8%AF%8D%E5%85%B8%E8%8B%B1%E6%B1%89%E5%8F%8C%E8%A7%A3%E7%AC%AC7%E7%89%88%E3%80%91%E3%80%90%E5%85%A8%E6%96%B0%E5%AD%A4%E9%9B%B7%E6%8E%92%E7%89%88%E3%80%91%E3%80%902011.7.31%E3%80%91.mdx) | | ✅ Passed |
-| 2 | [En-Zh] Oxford Advanced Learner's Dictionary 7th Edition (OALD 8 Style) | [Download](https://mdx.mdict.org/%E6%8C%89%E8%AF%8D%E5%85%B8%E8%AF%AD%E7%A7%8D%E6%9D%A5%E5%88%86%E7%B1%BB/%E8%8B%B1%E8%AF%AD/%E7%B3%BB%E5%88%97%E8%AF%8D%E5%85%B8/%E7%89%9B%E6%B4%A5/%5B%E8%8B%B1-%E6%B1%89%5D%20%E3%80%902012.7.1%E3%80%91%E7%89%9B%E6%B4%A5%E9%AB%98%E9%98%B6%E5%AD%A6%E4%B9%A0%E8%AF%8D%E5%85%B8%E8%8B%B1%E6%B1%89%E5%8F%8C%E8%A7%A3%E7%AC%AC7%E7%89%88%E3%80%90OALD%208%E9%A3%8E%E6%A0%BC%E9%87%8D%E6%96%B0%E6%8E%92%E7%89%88%E3%80%91.mdx) | | ✅ Passed |
+| 1 | [En-Zh] Oxford Advanced Learner's Dictionary 7th Edition (Bilingual) | [Download](https://mdx.mdict.org/%E6%8C%89%E8%AF%8D%E5%85%B8%E8%AF%AD%E7%A7%8D%E6%9D%A5%E5%88%86%E7%B1%BB/%E8%8B%B1%E8%AF%AD/%E7%B3%BB%E5%88%97%E8%AF%8D%E5%85%B8/%E7%89%9B%E6%B4%A5/%5B%E8%8B%B1-%E6%B1%89%5D%20%E2%97%86%E3%80%90%E7%89%9B%E6%B4%A5%E9%AB%98%E9%98%B6%E5%AD%A6%E4%B9%A0%E8%AF%8D%E5%85%B8%E8%8B%B1%E6%B1%89%E5%8F%8C%E8%A7%A3%E7%AC%AC7%E7%89%88%E3%80%91%E3%80%90%E5%85%A8%E6%96%B0%E5%AD%A4%E9%9B%B7%E6%8E%92%E7%89%88%E3%80%91%E3%80%902011.7.31%E3%80%91.mdx) | <img src="image-20260314154827870.png" alt="image-20260314154827870" style="zoom:50%;" /> | ✅ Passed |
+| 2 | [En-Zh] Oxford Advanced Learner's Dictionary 7th Edition (OALD 8 Style) | [Download](https://mdx.mdict.org/%E6%8C%89%E8%AF%8D%E5%85%B8%E8%AF%AD%E7%A7%8D%E6%9D%A5%E5%88%86%E7%B1%BB/%E8%8B%B1%E8%AF%AD/%E7%B3%BB%E5%88%97%E8%AF%8D%E5%85%B8/%E7%89%9B%E6%B4%A5/%5B%E8%8B%B1-%E6%B1%89%5D%20%E3%80%902012.7.1%E3%80%91%E7%89%9B%E6%B4%A5%E9%AB%98%E9%98%B6%E5%AD%A6%E4%B9%A0%E8%AF%8D%E5%85%B8%E8%8B%B1%E6%B1%89%E5%8F%8C%E8%A7%A3%E7%AC%AC7%E7%89%88%E3%80%90OALD%208%E9%A3%8E%E6%A0%BC%E9%87%8D%E6%96%B0%E6%8E%92%E7%89%88%E3%80%91.mdx) | <img src="image-20260314154751369.png" alt="image-20260314154751369" style="zoom: 50%;" /> | ✅ Passed |
 
 > More dictionaries available at [mdx.mdict.org](https://mdx.mdict.org/%E6%8C%89%E8%AF%8D%E5%85%B8%E8%AF%AD%E7%A7%8D%E6%9D%A5%E5%88%86%E7%B1%BB/%E8%8B%B1%E8%AF%AD/%E6%99%AE%E9%80%9A%E8%AF%8D%E5%85%B8/)
 
