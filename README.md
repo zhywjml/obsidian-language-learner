@@ -1,208 +1,268 @@
-## 用Obsidian来学习语言！
+# Language Learner | 语言学习者
 
-公告：已经开放discussion区，一般的问题可以先在这里进行讨论。
+[English](#english) | [中文](#中文)
 
-### 早期阶段
-当前插件还处在早期开发阶段，因此有以下事情需要注意：
-+ **目前仅支持中文母语者学习英文**。
-+ 因为还在不断的扩充新功能和重构旧功能，所以可能某次更新会带来与之前**不兼容的改变**（比如笔记的格式，数据库的结构等）。所以在更新新版本前请仔细查看release的说明。
+---
 
+<a name="中文"></a>
+
+## 中文
+
+用 Obsidian 来学习语言！
+
+> ⚠️ **注意**：当前插件还在早期开发阶段，目前仅支持中文母语者学习英文。项目目前仅测试英文环境。本项目正在进一步开发以及维护中。
 
 ### 使用指南
-+ [文字教程](https://github.com/guopenghui/obsidian-language-learner/blob/master/public/tutorial.pdf)
-+ [视频教程](https://www.bilibili.com/video/BV1914y1Y7mT)
-+ [一些做好的文本](https://github.com/guopenghui/language-learner-texts)
-+ @emisjerry 制作的使用教程: [Youtube](https://www.youtube.com/watch?v=lK3oFpUg7-o), [Bilibili](https://www.bilibili.com/video/BV1N24y1k7SL/)
+
+- 📖 [文字教程](https://github.com/guopenghui/obsidian-language-learner/blob/master/public/tutorial.pdf)
+- 🎬 [视频教程](https://www.bilibili.com/video/BV1914y1Y7mT)
+- 📝 [一些做好的文本](https://github.com/guopenghui/language-learner-texts)
+- 📺 @emisjerry 制作的使用教程: [Youtube](https://www.youtube.com/watch?v=lK3oFpUg7-o) | [Bilibili](https://www.bilibili.com/video/BV1N24y1k7SL/)
+
+> 💡 感谢原作者 [@guopenghui](https://github.com/guopenghui) 提供的教程资源。
+
+### 功能特性
+
+#### 核心功能
+
+- **查词功能**：直接在笔记中划词查词，支持有道词典、剑桥词典、DeepL 等多个在线词典
+- **离线词典**：支持加载本地 MDict 词典文件（.mdx），无需网络即可查词
+- **生词管理**：数据保存在 Obsidian 中，每个单词/短语支持多条笔记、多条例句
+- **阅读模式**：将每个单词变成可点击按钮，边读边查边记笔记
+- **统计图表**：显示学习进度和单词统计
+
+#### 数据存储
+
+- **Markdown 文件存储**（推荐）：支持 Obsidian Sync，可直接查看编辑
+- **IndexedDB 本地存储**：传统存储方式
+- **远程服务器存储**：支持自建后端服务器
+
+#### 阅读模式增强
+
+- **一键格式化**：自动为文章添加阅读模式格式标记
+- **分页导航**：支持页码跳转和每页段数调整
+- **本地音频**：支持在阅读模式下播放本地音频文件
+- **样式设置**：可调整字号、行距、字距
+
+#### 本地音频支持
+
+阅读模式下支持播放本地音频文件，边听边读：
+
+1. **格式化文章时设置**：点击侧边栏"格式化为阅读模式"按钮，会弹出音频文件选择器
+2. **为已有文章设置**：打开命令面板，搜索"设置文章音频"，选择音频文件
+3. **支持格式**：mp3, wav, ogg, m4a, flac, aac, wma
+4. **跳过设置**：按 Esc 键可跳过不设置音频
+
+<!-- 插入图片：音频播放器界面 -->
 
 
+#### 离线词典功能
 
-### 本插件功能
+- 支持 MDX 格式词典文件
+- 可同时加载多个词典
+- 智能模糊匹配和单词建议
+- 可设置默认词典（在线/离线）
+- 目前仅支持桌面端
 
-+ **查词功能**。直接在笔记中划词查词，词典为有道词典，支持柯林斯例句、近义词辨析。
-+ **添加笔记**。数据被保存在obsidain的indexDB数据库中。每个单词/短语支持多条笔记、多条例句（包括文本、翻译和出处）
-+ **解析页面**。将每个单词变成一个按钮，通过点击就可以边读边查边记笔记。如果有音频链接的话可以边听边读。
-+ **统计页面**。目前支持显示7天内每天自己记的单词数和总的单词数。
+> ⚠️ **重要提示**：如果将词典文件复制到库目录后无法看到 .mdx 文件，或在插件选择器中找不到词典，请按以下步骤开启文件类型检测：
+>
+> 1. 打开 Obsidian 设置
+> 2. 进入「文件与链接」
+> 3. 开启「检测所有文件类型」选项
+>
+> 详细说明参考：[Obsidian 论坛讨论](https://forum-zh.obsidian.md/t/topic/35297)
 
-联动其他插件功能：
-+ 联动various complements插件，将数据库中的单词保存在本地的一个note中。这样就可以在写作时得到自己之前记过的单词/短语的**自动提示和补全**
-+ 联动spaced repetition插件，将数据库中的单词保存在本地的note中。这样就可以制作成卡片，进行**间隔复习**。
+### 界面展示
 
-### 外观展示
-阅读：
-
-![阅读界面](https://github.com/guopenghui/obsidian-language-learner/blob/master/public/reading.png)
-
-单词列表：
-![单词列表](https://github.com/guopenghui/obsidian-language-learner/blob/master/public/table.png)
-
-自动补全/提示：
-
-![自动补全-英中](https://github.com/guopenghui/obsidian-language-learner/blob/master/public/complement1.png)
-![自动补全-中英](https://github.com/guopenghui/obsidian-language-learner/blob/master/public/complement2.png)
-
-间隔复习：
-
-![间隔复习](https://github.com/guopenghui/obsidian-language-learner/blob/master/public/review.png)
+<!-- 插入图片：阅读模式界面 -->
 
 
+<!-- 插入图片：单词列表面板 -->
 
 
-## 安装
+<!-- 插入图片：离线词典面板 -->
 
-+ 从realease下载压缩包`obsidian-language-leaner.zip`
-+ 解压到obsidian库的`.obsidian/plugins/`文件夹下，即保证`main.js`的路径为`.obsidian/plugins/obsidian-language-learner/main.js`
-+ 打开obsidian，在插件中启用本插件`Language Learner`.
-+ 配置见[使用指南](#使用指南)
-## 自行构建
 
-下载源码到本地
-```shell
+<!-- 插入图片：自动补全效果 -->
+
+
+### 测试通过的词典
+
+| 序号 | 名称 | 链接 | 状态 |
+|------|------|------|------|
+| 1 | [英-汉] ◆【牛津高阶学习词典英汉双解第7版】【全新孤雷排版】【2011.7.31】.mdx | [下载](https://mdx.mdict.org/%E6%8C%89%E8%AF%8D%E5%85%B8%E8%AF%AD%E7%A7%8D%E6%9D%A5%E5%88%86%E7%B1%BB/%E8%8B%B1%E8%AF%AD/%E7%B3%BB%E5%88%97%E8%AF%8D%E5%85%B8/%E7%89%9B%E6%B4%A5/%5B%E8%8B%B1-%E6%B1%89%5D%20%E2%97%86%E3%80%90%E7%89%9B%E6%B4%A5%E9%AB%98%E9%98%B6%E5%AD%A6%E4%B9%A0%E8%AF%8D%E5%85%B8%E8%8B%B1%E6%B1%89%E5%8F%8C%E8%A7%A3%E7%AC%AC7%E7%89%88%E3%80%91%E3%80%90%E5%85%A8%E6%96%B0%E5%AD%A4%E9%9B%B7%E6%8E%92%E7%89%88%E3%80%91%E3%80%902011.7.31%E3%80%91.mdx) | ✅ 通过 |
+
+> 更多词典可在 [mdx.mdict.org](https://mdx.mdict.org/) 获取
+
+### 安装
+
+1. 从 Release 下载压缩包
+2. 解压到 `.obsidian/plugins/obsidian-language-learner/` 目录
+3. 在 Obsidian 设置中启用插件
+4. 配置词典和存储方式
+
+### 自行构建
+
+```bash
+# 克隆仓库
 git clone https://github.com/guopenghui/obsidian-language-learner.git
-```
 
-进入文件夹，运行
-```shell
+# 进入目录
 cd obsidian-language-learner
+
 # 安装依赖
-npm install 
-# 构建 会自动压缩代码体积
-npm run build 
+npm install
+
+# 构建
+npm run build
 ```
 
-## 问题或建议
-欢迎大家提交issue：
-+ bug反馈
-+ 对新功能的想法
-+ 对已有功能的优化
-
-可能有时作者暂时比较忙，或是对于提出的功能需求暂时没想到好的实现方法而没有一一回复。
-
-但是只要提了issue都会看的，所以大家有想法或反馈直接发到issue就行。
-
-
-## 新鼠标
-在鼠标寿命到头，左键时灵时不灵的艰难的环境下完成了0.0.1版的发布。😭
-
-觉得这款插件好用的朋友，或是想鼓励一下作者，可以赞助孩子买个新鼠标!!🖱
-
-![微信](https://github.com/guopenghui/obsidian-language-learner/blob/master/public/wechat.jpg)
-![支付宝](https://github.com/guopenghui/obsidian-language-learner/blob/master/public/alipay.jpg)
-
 ---
 
-## 扩展功能
+<a name="english"></a>
 
-### 数据存储优化
+## English
 
-#### Markdown 文件存储（推荐）
+Learn languages with Obsidian!
 
-新增 Markdown 文件存储方式，相比原有的 IndexedDB 有以下优势：
+> ⚠️ **Note**: The plugin is in early development stage. Currently only supports Chinese native speakers learning English. The project has only been tested in English environment. This project is under active development and maintenance.
 
-- **支持 Obsidian Sync**：单词数据可以通过 Obsidian 的同步功能在多设备间同步
-- **可直接查看编辑**：数据存储在普通的 Markdown 文件中，用户可以直接打开查看和编辑
-- **支持 Git 版本控制**：可以将单词数据纳入版本管理
-- **数据迁移**：支持从 IndexedDB 一键迁移到 Markdown 文件
+### Tutorials
 
-在设置中选择"存储方式"为"Markdown 文件"，并设置文件路径即可使用。
+- 📖 [Text Tutorial (PDF, Chinese)](https://github.com/guopenghui/obsidian-language-learner/blob/master/public/tutorial.pdf)
+- 🎬 [Video Tutorial (Bilibili, Chinese)](https://www.bilibili.com/video/BV1914y1Y7mT)
+- 📝 [Sample Texts](https://github.com/guopenghui/language-learner-texts)
+- 📺 Tutorial by @emisjerry: [Youtube](https://www.youtube.com/watch?v=lK3oFpUg7-o) | [Bilibili](https://www.bilibili.com/video/BV1N24y1k7SL/)
 
----
+> 💡 Thanks to the original author [@guopenghui](https://github.com/guopenghui) for providing these tutorial resources.
 
-### 阅读模式增强
+### Features
 
-#### 一键格式化文章
+#### Core Features
 
-点击侧边栏的"格式化为阅读模式"按钮，自动为当前文章：
+- **Word Lookup**: Select text to search in multiple online dictionaries (Youdao, Cambridge, DeepL, etc.)
+- **Offline Dictionary**: Load local MDict dictionary files (.mdx) for offline word lookup
+- **Vocabulary Management**: Store words in Obsidian, each word/phrase supports multiple notes and sentences
+- **Reading Mode**: Convert each word into a clickable button for easy lookup while reading
+- **Statistics**: Display learning progress and word counts
 
-1. 添加 `langr: true` 属性标记
-2. 添加 `^^^article` 内容分隔符
-3. 添加 `^^^words` 生词区域
-4. 添加 `^^^notes` 笔记区域
-5. 弹出音频文件选择器（可选）
+#### Data Storage
 
-#### 分页导航
+- **Markdown File Storage** (Recommended): Supports Obsidian Sync, directly viewable and editable
+- **IndexedDB Local Storage**: Traditional storage method
+- **Remote Server Storage**: Self-hosted backend server support
 
-阅读页面底部新增分页组件：
+#### Reading Mode Enhancements
 
-- 显示当前页码和总页数
-- 支持直接点击页码跳转
-- 支持切换每页显示段数（1/2/4/8/16 段或全部）
-- 自动记录阅读位置，下次打开自动定位
+- **One-click Formatting**: Automatically add reading mode format markers
+- **Pagination**: Page navigation with adjustable paragraphs per page
+- **Local Audio**: Play local audio files in reading mode
+- **Style Settings**: Adjust font size, line height, and letter spacing
 
-#### 阅读样式设置
+#### Local Audio Support
 
-功能区新增样式设置按钮，支持实时调整：
+Play local audio files while reading:
 
-- **字号**：12px - 28px
-- **行距**：1.0 - 3.0
-- **字距**：-0.1em - 0.5em
+1. **Set during formatting**: Click "Format for Reading" button, an audio file selector will appear
+2. **Set for existing articles**: Open command palette, search "Set Article Audio", select audio file
+3. **Supported formats**: mp3, wav, ogg, m4a, flac, aac, wma
+4. **Skip setting**: Press Esc to skip audio selection
 
----
+<!-- Insert image: Audio player interface -->
 
-### 本地音频播放
 
-支持在阅读模式下播放本地音频文件，边听边读。
+#### Offline Dictionary Features
 
-#### 使用方法
+- Support MDX format dictionary files
+- Load multiple dictionaries simultaneously
+- Smart fuzzy matching and word suggestions
+- Configurable default dictionary (online/offline)
+- Currently desktop only
 
-1. **格式化文章时设置音频**：
-   - 点击侧边栏"格式化为阅读模式"按钮
-   - 弹出音频文件选择器，选择音频文件
-   - 支持格式：mp3, wav, ogg, m4a, flac, aac, wma
-   - 按 Esc 可跳过不设置
+> ⚠️ **Important**: If you cannot see .mdx files after copying them to your vault, or cannot find dictionaries in the plugin selector, please enable file type detection:
+>
+> 1. Open Obsidian Settings
+> 2. Go to "Files & Links"
+> 3. Enable "Detect all file extensions" option
+>
+> See [Obsidian Forum](https://forum-zh.obsidian.md/t/topic/35297) for details.
 
-2. **为已有文章设置音频**：
-   - 打开命令面板 (Ctrl/Cmd + P)
-   - 搜索"设置文章音频"
-   - 选择音频文件
+### Screenshots
 
-#### 音频路径格式
+<!-- Insert image: Reading mode -->
 
-音频以相对路径存储在 frontmatter 中，`~/` 表示知识库根目录：
 
-```yaml
----
-langr: true
-langr-audio: ~/audio/my-audio.mp3
----
+<!-- Insert image: Word list panel -->
+
+
+<!-- Insert image: Offline dictionary panel -->
+
+
+<!-- Insert image: Auto-completion -->
+
+
+### Tested Dictionaries
+
+| No. | Name | Link | Status |
+|-----|------|------|--------|
+| 1 | [En-Zh] Oxford Advanced Learner's Dictionary 7th Edition (Bilingual) | [Download](https://mdx.mdict.org/%E6%8C%89%E8%AF%8D%E5%85%B8%E8%AF%AD%E7%A7%8D%E6%9D%A5%E5%88%86%E7%B1%BB/%E8%8B%B1%E8%AF%AD/%E7%B3%BB%E5%88%97%E8%AF%8D%E5%85%B8/%E7%89%9B%E6%B4%A5/%5B%E8%8B%B1-%E6%B1%89%5D%20%E2%97%86%E3%80%90%E7%89%9B%E6%B4%A5%E9%AB%98%E9%98%B6%E5%AD%A6%E4%B9%A0%E8%AF%8D%E5%85%B8%E8%8B%B1%E6%B1%89%E5%8F%8C%E8%A7%A3%E7%AC%AC7%E7%89%88%E3%80%91%E3%80%90%E5%85%A8%E6%96%B0%E5%AD%A4%E9%9B%B7%E6%8E%92%E7%89%88%E3%80%91%E3%80%902011.7.31%E3%80%91.mdx) | ✅ Passed |
+
+> More dictionaries available at [mdx.mdict.org](https://mdx.mdict.org/)
+
+### Installation
+
+1. Download the release package
+2. Extract to `.obsidian/plugins/obsidian-language-learner/` directory
+3. Enable the plugin in Obsidian settings
+4. Configure dictionaries and storage options
+
+### Build from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/guopenghui/obsidian-language-learner.git
+
+# Navigate to directory
+cd obsidian-language-learner
+
+# Install dependencies
+npm install
+
+# Build
+npm run build
 ```
 
-阅读页面会自动解析并显示音频播放器。
+---
+
+## Acknowledgments | 致谢
+
+本项目基于以下开源项目开发：
+
+### Core Projects | 核心项目
+
+- [obsidian-language-learner](https://github.com/guopenghui/obsidian-language-learner) - Original plugin by @guopenghui
+- [js-mdict](https://github.com/terasum/js-mdict) - MDict (.mdx/.mdd) file parser by @terasum
+
+### Frameworks & Libraries | 框架与库
+
+- [Obsidian](https://obsidian.md/) - The note-taking app
+- [Vue 3](https://vuejs.org/) - Progressive JavaScript framework
+- [Naive UI](https://www.naiveui.com/) - Vue 3 component library
+- [Dexie.js](https://dexie.org/) - IndexedDB wrapper
+- [ECharts](https://echarts.apache.org/) - Charting library
+- [unified](https://unifiedjs.com/) - Text processing ecosystem
+
+### Special Thanks | 特别感谢
+
+- [@guopenghui](https://github.com/guopenghui) - 原插件作者
+- [@terasum](https://github.com/terasum) - js-mdict 项目作者
+- [Claude Code](https://claude.ai/code) - AI 编程助手
+- [glm-5](https://bigmodel.cn/) - 智谱 AI 大模型
+- All dictionary providers and the MDict community
+- Everyone who contributed to this project
 
 ---
 
-### 离线词典 (MDict)
+## License | 许可证
 
-支持加载本地 MDict 词典文件（.mdx），实现离线查词功能。
-
-#### 特点
-
-- **离线使用**：无需网络连接，完全本地运行
-- **支持多种词典**：可同时加载多个 MDX 词典
-- **智能建议**：未找到精确匹配时提供相似词建议
-- **仅支持桌面端**：由于使用 Node.js 文件系统 API
-
-#### 使用方法
-
-1. **添加词典**：
-   - 打开设置 → 离线词典
-   - 点击"选择 MDX 文件"按钮
-   - 选择 .mdx 格式的词典文件
-
-2. **使用词典**：
-   - 点击侧边栏的"离线词典"图标（打开书本）
-   - 或使用命令面板搜索"打开离线词典"
-   - 输入单词进行查询
-
-3. **管理词典**：
-   - 在设置中可以启用/禁用已添加的词典
-   - 可以删除不需要的词典
-   - 支持快速加载指定词典
-
-#### 推荐词典
-
-常见的 MDX 词典格式：
-- 牛津高阶词典 (OALD)
-- 剑桥词典
-- 柯林斯词典
-- 朗文词典
-- 以及其他 MDX 格式词典
+MIT License

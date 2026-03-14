@@ -68,6 +68,8 @@ export interface MyPluginSettings {
     review_delimiter: string;
     // mdict
     mdict_paths: { path: string; enabled: boolean }[];
+    // default dictionary for word search
+    default_dict: "online" | "offline";
 }
 
 export const DEFAULT_SETTINGS: MyPluginSettings = {
@@ -117,6 +119,8 @@ export const DEFAULT_SETTINGS: MyPluginSettings = {
     review_delimiter: "?",
     // mdict
     mdict_paths: [],
+    // default dictionary
+    default_dict: "online",
 };
 
 export class SettingTab extends PluginSettingTab {
@@ -775,6 +779,20 @@ export class SettingTab extends PluginSettingTab {
 
     mdictSettings(containerEl: HTMLElement) {
         containerEl.createEl("h3", { text: t("Offline Dictionary") });
+
+        // 默认词典选择
+        new Setting(containerEl)
+            .setName(t("Default Dictionary"))
+            .setDesc(t("Choose which dictionary to show by default when searching words"))
+            .addDropdown(dropdown => dropdown
+                .addOption("online", t("Online Dictionary"))
+                .addOption("offline", t("Offline Dictionary"))
+                .setValue(this.plugin.settings.default_dict)
+                .onChange(async (value: "online" | "offline") => {
+                    this.plugin.settings.default_dict = value;
+                    await this.plugin.saveSettings();
+                })
+            );
 
         // 词典列表
         const dictListContainer = containerEl.createDiv({ cls: "mdict-list-container" });

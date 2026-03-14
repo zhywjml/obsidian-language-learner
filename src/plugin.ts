@@ -287,7 +287,7 @@ export default class LanguageLearner extends Plugin {
                 id: "langr-open-mdict-panel",
                 name: t("Open Offline Dictionary"),
                 callback: () => {
-                    this.activateView(MDICT_PANEL_VIEW, "right");
+                    this.activateView(MDICT_PANEL_VIEW, "left");
                 },
             });
         }
@@ -345,7 +345,7 @@ export default class LanguageLearner extends Plugin {
                 (leaf) => new MdictPanelView(leaf, this)
             );
             this.addRibbonIcon(MDICT_ICON, t("Offline Dictionary"), (evt) => {
-                this.activateView(MDICT_PANEL_VIEW, "right");
+                this.activateView(MDICT_PANEL_VIEW, "left");
             });
         }
     }
@@ -571,14 +571,30 @@ export default class LanguageLearner extends Plugin {
     async queryWord(word: string, target?: HTMLElement, evtPosition?: Position): Promise<void> {
         if (!word) return;
 
-        if (!this.settings.popup_search) {
+        // 根据设置决定默认激活哪个词典面板
+        const defaultDict = this.settings.default_dict;
+
+        // 在线词典面板
+        if (!this.settings.popup_search || defaultDict === "online") {
             await this.activateView(SEARCH_PANEL_VIEW, "left");
+        }
+
+        // 离线词典面板（仅桌面端）
+        if (Platform.isDesktopApp && this.mdictEngine?.isLoaded()) {
+            if (defaultDict === "offline") {
+                await this.activateView(MDICT_PANEL_VIEW, "left");
+            }
+            // 发送事件给离线词典
+            dispatchEvent(new CustomEvent('obsidian-mdict-search', {
+                detail: { selection: word }
+            }));
         }
 
         if (target && Platform.isDesktopApp) {
             await this.activateView(LEARN_PANEL_VIEW, "right");
         }
 
+        // 发送事件给在线词典
         dispatchEvent(new CustomEvent('obsidian-langr-search', {
             detail: { selection: word, target, evtPosition }
         }));

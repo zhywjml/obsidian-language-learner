@@ -225,4 +225,8 @@ export default {
     "Loading...": "Loading...",
     "No result found": "No result found",
     "Did you mean:": "Did you mean:",
+    "Select dictionary": "Select dictionary",
+    "Default Dictionary": "Default Dictionary",
+    "Choose which dictionary to show by default when searching words": "Choose which dictionary to show by default when searching words",
+    "Online Dictionary": "Online Dictionary",
 };

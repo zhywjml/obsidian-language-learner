@@ -219,4 +219,8 @@ export default {
     "Loading...": "加载中...",
     "No result found": "未找到结果",
     "Did you mean:": "您是指：",
+    "Select dictionary": "选择词典",
+    "Default Dictionary": "默认词典",
+    "Choose which dictionary to show by default when searching words": "查词时默认展示的词典",
+    "Online Dictionary": "在线词典",
 };

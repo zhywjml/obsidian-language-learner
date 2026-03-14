@@ -795,6 +795,231 @@
 #langr-data .data-more .data-sens .data-sen p:first-child {
   font-style: italic;
 }
+#mdict-result {
+  padding-bottom: 10px;
+}
+#mdict-result .loading {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-muted);
+}
+#mdict-result .not-found {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-muted);
+}
+#mdict-result .not-found .suggestions {
+  margin-top: 15px;
+  text-align: left;
+}
+#mdict-result .not-found .suggestions ul {
+  list-style: none;
+  padding: 0;
+}
+#mdict-result .not-found .suggestions ul li {
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color .2s;
+  color: var(--text-accent);
+}
+#mdict-result .not-found .suggestions ul li:hover {
+  background-color: var(--background-modifier-hover);
+}
+#mdict-result .result .word-title {
+  font-size: 1.3em;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+#mdict-result .result .definition {
+  line-height: 1.6;
+}
+#mdict-result .result .definition .phonetic,
+#mdict-result .result .definition .pron {
+  color: var(--text-accent);
+  font-style: italic;
+}
+#mdict-result .result .definition .pos {
+  color: var(--text-accent);
+  font-weight: bold;
+  margin-right: 5px;
+}
+#mdict-result .result .definition .definition-item {
+  margin: 8px 0;
+  padding-left: 15px;
+  position: relative;
+}
+#mdict-result .result .definition .definition-item:before {
+  content: "\2022";
+  position: absolute;
+  left: 0;
+  color: var(--text-muted);
+}
+#mdict-result .result .definition .example {
+  font-style: italic;
+  color: var(--text-muted);
+  margin: 5px 0 5px 15px;
+}
+#mdict-result .result .definition .mdict-link {
+  color: var(--text-accent);
+  cursor: pointer;
+}
+#mdict-result .result .definition .mdict-link:hover {
+  text-decoration: underline;
+}
+#mdict-result .result .definition table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 10px 0;
+}
+#mdict-result .result .definition table td,
+#mdict-result .result .definition table th {
+  border: 1px solid var(--background-modifier-border);
+  padding: 5px 10px;
+}
+#mdict-result .result .definition table th {
+  background-color: var(--background-modifier-hover);
+}
+#mdict-result .result .definition img {
+  max-width: 100%;
+  height: auto;
+}
+#mdict-result .result .definition a[href^="sound://"]:before,
+#mdict-result .result .definition a[href*=".mp3"]:before,
+#mdict-result .result .definition a[href*=".wav"]:before {
+  content: "\1f50a";
+  margin-right: 5px;
+}
+#mdict-result h1,
+#mdict-result h2,
+#mdict-result h3,
+#mdict-result h4 {
+  margin-top: .2em;
+  margin-bottom: .2em;
+}
+#mdict-result p {
+  margin-top: .2em;
+  margin-bottom: .2em;
+}
+#mdict-result ul {
+  padding-left: 20px;
+  margin-top: .2em;
+  margin-bottom: .2em;
+}
+#mdict-result ul,
+#mdict-result ol,
+#mdict-result li {
+  list-style-type: none;
+}
+.theme-dark #mdict-result .result .definition .phonetic,
+.theme-dark #mdict-result .result .definition .pron {
+  color: #7aa2f7;
+}
+.theme-dark #mdict-result .result .definition .pos {
+  color: #bb9af7;
+}
+#mdict-panel {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-size: .8em;
+  user-select: text;
+  display: flex;
+  flex-direction: column;
+}
+#mdict-panel .search-bar {
+  margin-bottom: 5px;
+}
+#mdict-panel .search-bar button {
+  margin-right: 5px;
+}
+#mdict-panel .dict-selector {
+  margin-bottom: 5px;
+}
+#mdict-panel .dict-selector .dict-dropdown {
+  position: relative;
+  padding: 4px 10px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background: var(--background-primary);
+  cursor: pointer;
+  text-align: center;
+  font-size: 12px;
+}
+#mdict-panel .dict-selector .dict-dropdown:hover {
+  border-color: var(--interactive-accent);
+}
+#mdict-panel .dict-selector .dict-dropdown .dict-label {
+  color: var(--text-normal);
+}
+#mdict-panel .dict-selector .dict-dropdown .dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  padding: 4px 0;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px #00000026;
+  z-index: 100;
+  margin-top: 2px;
+}
+#mdict-panel .dict-selector .dict-dropdown .dropdown-menu .dropdown-item {
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--text-normal);
+  cursor: pointer;
+  white-space: nowrap;
+}
+#mdict-panel .dict-selector .dict-dropdown .dropdown-menu .dropdown-item:hover {
+  background: var(--background-secondary);
+}
+#mdict-panel .dict-selector .dict-dropdown .dropdown-menu .dropdown-item.active {
+  color: var(--interactive-accent);
+  font-weight: 600;
+}
+#mdict-panel .dict-selector .dict-dropdown .dropdown-menu .dropdown-item.disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: .5;
+}
+#mdict-panel .dict-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+#mdict-panel .dict-status .no-dict {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+#mdict-panel .result-area {
+  flex: 1;
+  overflow: auto;
+}
+#mdict-panel .mdict-result-container {
+  padding: 10px;
+}
+#mdict-panel .no-dict-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 20px;
+}
+#mdict-panel .no-dict-message p {
+  margin: 5px 0;
+}
+.is-mobile #mdict-panel button:not(.fold-mask) {
+  width: auto;
+}
+.is-mobile #mdict-panel input[type=text] {
+  padding: 0;
+}
 #popup-search {
   position: fixed;
   border-radius: 5px;

@@ -8,7 +8,7 @@
             <div v-if="suggestions.length > 0" class="suggestions">
                 <p>{{ t("Did you mean:") }}</p>
                 <ul>
-                    <li v-for="sug in suggestions" :key="sug.keyText" @click="selectSuggestion(sug.keyText)">
+                    <li v-for="sug in suggestions" :key="sug.keyText" class="mdict-link" @click="selectSuggestion(sug.keyText)">
                         {{ sug.keyText }}
                     </li>
                 </ul>
@@ -23,7 +23,6 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, getCurrentInstance } from "vue";
-import { sanitizeHTMLToDom } from "obsidian";
 import { t } from "@/lang/helper";
 import PluginType from "@/plugin";
 import { MdictSearchResult, MdictSuggestion } from "./types";
@@ -57,13 +56,11 @@ const sanitizedDefinition = computed(() => {
     let html = result.value.definition;
 
     // 处理常见的词典样式问题
-    // 移除可能导致问题的脚本和样式标签
     html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
     html = html.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "");
 
-    // 处理图片路径（MDict 词典通常使用相对路径或特殊协议）
     // 将 \\ 标记转换为可点击的链接
-    html = html.replace(/\\([^\\]+)\\/g, '<a href="#" class="mdict-link">$1</a>');
+    html = html.replace(/\\([^\\]+)\\/g, '<span class="mdict-link">$1</span>');
 
     return html;
 });
@@ -84,11 +81,9 @@ async function onSearch(): Promise<boolean> {
     loading.value = true;
 
     try {
-        // 查询单词
         const searchResult = engine.search(props.word.trim());
         result.value = searchResult;
 
-        // 如果没找到，尝试获取建议
         if (!searchResult.found) {
             suggestions.value = engine.suggest(props.word.trim(), 8, 3);
         } else {
@@ -116,8 +111,7 @@ useLoading(() => props.word, "mdict", onSearch, emits);
 
 <style lang="scss">
 #mdict-result {
-    padding: 10px;
-    font-size: 0.9em;
+    padding-bottom: 10px;
 
     .loading {
         text-align: center;
@@ -143,6 +137,7 @@ useLoading(() => props.word, "mdict", onSearch, emits);
                     cursor: pointer;
                     border-radius: 4px;
                     transition: background-color 0.2s;
+                    color: var(--text-accent);
 
                     &:hover {
                         background-color: var(--background-modifier-hover);
@@ -154,10 +149,9 @@ useLoading(() => props.word, "mdict", onSearch, emits);
 
     .result {
         .word-title {
-            font-size: 1.4em;
-            font-weight: bold;
+            font-size: 1.3em;
+            font-weight: 700;
             margin-bottom: 10px;
-            color: var(--text-normal);
         }
 
         .definition {
@@ -197,14 +191,12 @@ useLoading(() => props.word, "mdict", onSearch, emits);
             .mdict-link {
                 color: var(--text-accent);
                 cursor: pointer;
-                text-decoration: underline;
 
                 &:hover {
-                    color: var(--text-accent-hover);
+                    text-decoration: underline;
                 }
             }
 
-            // 处理表格
             table {
                 border-collapse: collapse;
                 width: 100%;
@@ -220,7 +212,6 @@ useLoading(() => props.word, "mdict", onSearch, emits);
                 }
             }
 
-            // 处理图片
             img {
                 max-width: 100%;
                 height: auto;
@@ -234,6 +225,27 @@ useLoading(() => props.word, "mdict", onSearch, emits);
                 }
             }
         }
+    }
+
+    // 基础排版
+    h1, h2, h3, h4 {
+        margin-top: 0.2em;
+        margin-bottom: 0.2em;
+    }
+
+    p {
+        margin-top: 0.2em;
+        margin-bottom: 0.2em;
+    }
+
+    ul {
+        padding-left: 20px;
+        margin-top: 0.2em;
+        margin-bottom: 0.2em;
+    }
+
+    ul, ol, li {
+        list-style-type: none;
     }
 }
 
