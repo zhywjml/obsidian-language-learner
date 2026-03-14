@@ -3,7 +3,13 @@ import {
     ExpressionInfo, ExpressionInfoSimple, CountInfo, WordCount, Span
 } from "./interface";
 
-
+/**
+ * 数据库抽象基类
+ *
+ * 定义所有数据库操作接口，支持两种实现：
+ * - LocalDb: 本地 IndexedDB 存储
+ * - WebDb: 远程服务器 API
+ */
 abstract class DbProvider {
     abstract open(): Promise<void>;
     abstract close(): void;

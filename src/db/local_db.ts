@@ -11,9 +11,14 @@ import DbProvider from "./base";
 import WordDB from "./idb";
 import Plugin from "@/plugin";
 
-
+/**
+ * 本地数据库实现类
+ *
+ * 使用 IndexedDB 存储单词、词组、例句等数据
+ * 继承自 DbProvider 抽象类，实现所有数据库操作
+ */
 export class LocalDb extends DbProvider {
-    idb: WordDB;
+    idb: WordDB;      // Dexie 数据库实例
     plugin: Plugin;
     constructor(plugin: Plugin) {
         super();
@@ -30,7 +35,11 @@ export class LocalDb extends DbProvider {
         this.idb.close();
     }
 
-    // 寻找页面中已经记录过的单词和词组
+    /**
+     * 在文章中查找已记录的单词和词组
+     * @param payload 包含文章文本和待查询单词列表
+     * @returns 匹配的单词和词组
+     */
     async getStoredWords(payload: ArticleWords): Promise<WordsPhrase> {
         let storedPhrases = new Map<string, number>();
         await this.idb.expressions

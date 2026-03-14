@@ -1,5 +1,4 @@
-import { text } from "node:stream/consumers";
-import { App, Modal, Setting } from "obsidian";
+import { App, Modal, Setting, FuzzySuggestModal, TFile } from "obsidian";
 import { t } from "./lang/helper";
 
 // 输入文字
@@ -120,4 +119,74 @@ class WarningModal extends Modal {
     }
 }
 
-export { OpenFileModal, WarningModal, InputModal };
+// Markdown 文件选择器
+class MarkdownFileSuggestModal extends FuzzySuggestModal<TFile> {
+    files: TFile[];
+    onSelect: (file: TFile) => void;
+
+    constructor(app: App, onSelect: (file: TFile) => void) {
+        super(app);
+        this.onSelect = onSelect;
+        // 获取所有 Markdown 文件
+        this.files = app.vault.getMarkdownFiles();
+    }
+
+    getItems(): TFile[] {
+        return this.files;
+    }
+
+    getItemText(file: TFile): string {
+        return file.path;
+    }
+
+    onChooseItem(file: TFile, evt: MouseEvent | KeyboardEvent): void {
+        this.onSelect(file);
+    }
+}
+
+// 音频文件选择器
+class AudioFileSuggestModal extends FuzzySuggestModal<TFile> {
+    files: TFile[];
+    private onSelect: (file: TFile | null) => void;
+    private selected = false;
+    // 支持的音频格式
+    static AUDIO_EXTENSIONS = ["mp3", "wav", "ogg", "m4a", "flac", "aac", "wma"];
+
+    constructor(app: App, onSelect: (file: TFile | null) => void) {
+        super(app);
+        this.onSelect = onSelect;
+        // 获取所有音频文件
+        this.files = this.getAudioFiles();
+        // 设置提示文本
+        this.setPlaceholder(t("Select an audio file or press Esc to skip"));
+    }
+
+    getAudioFiles(): TFile[] {
+        const allFiles = this.app.vault.getFiles();
+        return allFiles.filter(file =>
+            AudioFileSuggestModal.AUDIO_EXTENSIONS.includes(file.extension.toLowerCase())
+        );
+    }
+
+    getItems(): TFile[] {
+        return this.files;
+    }
+
+    getItemText(file: TFile): string {
+        return file.path;
+    }
+
+    onChooseItem(file: TFile, evt: MouseEvent | KeyboardEvent): void {
+        this.selected = true;
+        this.onSelect(file);
+    }
+
+    onClose(): void {
+        // 如果用户按 Esc 关闭（没有选择），返回 null
+        if (!this.selected) {
+            this.onSelect(null);
+        }
+    }
+}
+
+export { OpenFileModal, WarningModal, InputModal, MarkdownFileSuggestModal, AudioFileSuggestModal };

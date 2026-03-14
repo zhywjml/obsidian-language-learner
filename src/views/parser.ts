@@ -8,17 +8,28 @@ import { toString } from "nlcst-to-string";
 import { Phrase, Word } from "@/db/interface";
 import Plugin from "@/plugin";
 
+// 单词状态映射：索引 -> CSS类名
 const STATUS_MAP = ["ignore", "learning", "familiar", "known", "learned"];
 type AnyNode = Root | Content | Content[];
 
+/**
+ * 文本解析器
+ *
+ * 使用 unified/retext 处理英文文本：
+ * 1. 将文本解析为 AST（抽象语法树）
+ * 2. 识别已记录的词组并标记
+ * 3. 将 AST 转换为 HTML，每个单词包裹在 span 标签中
+ *
+ * 生成的 HTML 用于阅读视图，单词根据状态有不同的 CSS 类名
+ */
 export class TextParser {
     // 记录短语位置
     phrases: Phrase[] = [];
     // 记录单词状态
     words: Map<string, Word> = new Map<string, Word>();
-    pIdx: number = 0;
+    pIdx: number = 0;           // 短语处理索引
     plugin: Plugin;
-    processor: Processor;
+    processor: Processor;       // unified 处理器
 
     constructor(plugin: Plugin) {
         this.plugin = plugin;

@@ -1,3 +1,13 @@
+/**
+ * Language Learner - Obsidian 语言学习插件
+ *
+ * 主要功能：
+ * - 划词查词（支持有道、剑桥、DeepL等多个词典）
+ * - 生词管理（学习状态：Ignore/Learning/Familiar/Known/Learned）
+ * - 阅读模式（将每个单词变成可点击按钮）
+ * - 统计图表
+ */
+
 import {
     Notice,
     Plugin,
@@ -24,15 +34,16 @@ import { t } from "./lang/helper";
 import DbProvider from "./db/base";
 import { WebDb } from "./db/web_db";
 import { LocalDb } from "./db/local_db";
+import { MarkdownDb } from "./db/markdown_db";
 import { TextParser } from "./views/parser";
 import { FrontMatterManager } from "./utils/frontmatter";
 import Server from "./api/server";
 
-import { DEFAULT_SETTINGS, MyPluginSettings, SettingTab } from "./settings";
+import { DEFAULT_SETTINGS, MyPluginSettings, SettingTab, StorageType } from "./settings";
 import store from "./store";
 import { playAudio } from "./utils/helpers";
 import type { Position } from "./constant";
-import { InputModal } from "./modals"
+import { InputModal, AudioFileSuggestModal } from "./modals"
 
 import Global from "./views/Global.vue";
 
@@ -40,16 +51,29 @@ import Global from "./views/Global.vue";
 
 export const FRONT_MATTER_KEY: string = "langr";
 
+/**
+ * Language Learner 主插件类
+ * 负责管理插件的生命周期、视图注册、事件处理等
+ */
 export default class LanguageLearner extends Plugin {
+    // 基础常量（路径、平台）
     constants: { basePath: string; platform: "mobile" | "desktop"; };
+    // 插件设置
     settings: MyPluginSettings;
+    // 全局 Vue App 挂载点（用于浮动元素如弹窗查词）
     appEl: HTMLElement;
     vueApp: VueApp;
+    // 数据库实例（本地 IndexedDB 或远程服务器）
     db: DbProvider;
+    // 内置 HTTP 服务器（用于与浏览器扩展交互）
     server: Server;
+    // 文本解析器（英文分词、短语识别）
     parser: TextParser;
+    // Markdown 视图按钮缓存
     markdownButtons: Record<string, HTMLElement> = {};
+    // Frontmatter 管理器
     frontManager: FrontMatterManager;
+    // Vue 响应式状态
     store: typeof store = store;
 
     async onload() {
@@ -60,15 +84,7 @@ export default class LanguageLearner extends Plugin {
         this.registerConstants();
 
         // 打开数据库
-        this.db = this.settings.use_server
-            ? new WebDb(
-                this.settings.host,
-                this.settings.port,
-                this.settings.use_https,
-                this.settings.api_key
-                )
-            : new LocalDb(this);
-        await this.db.open();
+        await this.initDatabase();
 
         // 设置解析器
         this.parser = new TextParser(this);
@@ -134,6 +150,49 @@ export default class LanguageLearner extends Plugin {
             basePath: normalizePath((this.app.vault.adapter as any).basePath),
             platform: Platform.isMobile ? "mobile" : "desktop",
         };
+    }
+
+    /**
+     * 初始化数据库
+     * 根据设置选择存储类型
+     */
+    async initDatabase() {
+        this.db = this.createDatabase(this.settings.storage_type);
+        await this.db.open();
+    }
+
+    /**
+     * 创建数据库实例
+     */
+    createDatabase(type: StorageType): DbProvider {
+        switch (type) {
+            case "markdown":
+                return new MarkdownDb(this, this.settings.md_db_path);
+            case "server":
+                return new WebDb(
+                    this.settings.host,
+                    this.settings.port,
+                    this.settings.use_https,
+                    this.settings.api_key
+                );
+            case "indexeddb":
+            default:
+                return new LocalDb(this);
+        }
+    }
+
+    /**
+     * 切换存储类型
+     */
+    async switchStorage(type: StorageType) {
+        // 关闭旧数据库
+        if (this.db) {
+            this.db.close();
+        }
+        // 创建新数据库
+        this.db = this.createDatabase(type);
+        await this.db.open();
+        this.settings.storage_type = type;
     }
 
     // async replacePDF() {
@@ -204,6 +263,15 @@ export default class LanguageLearner extends Plugin {
                 modal.open();
             },
         });
+
+        // 注册设置音频命令
+        this.addCommand({
+            id: "langr-set-article-audio",
+            name: t("Set Article Audio"),
+            callback: () => {
+                this.setArticleAudio();
+            },
+        });
     }
 
     registerCustomViews() {
@@ -244,6 +312,11 @@ export default class LanguageLearner extends Plugin {
         );
         this.addRibbonIcon(DATA_ICON, t("Data Panel"), async (evt) => {
             this.activateView(DATA_PANEL_VIEW, "tab");
+        });
+
+        // 注册格式化文章的侧边栏按钮
+        this.addRibbonIcon("wand", t("Format for Reading"), async (evt) => {
+            await this.formatArticleForReading();
         });
     }
 
@@ -619,5 +692,99 @@ export default class LanguageLearner extends Plugin {
         this.app.workspace.revealLeaf(
             this.app.workspace.getLeavesOfType(VIEW_TYPE)[0]
         );
+    }
+
+    /**
+     * 格式化当前文章为阅读模式格式
+     * 添加 langr: true 属性，以及 ^^^article, ^^^words, ^^^notes 分隔符
+     * 同时弹出音频文件选择器
+     */
+    async formatArticleForReading(): Promise<void> {
+        const activeFile = this.app.workspace.getActiveFile();
+
+        if (!activeFile) {
+            new Notice(t("No active file"));
+            return;
+        }
+
+        if (activeFile.extension !== "md") {
+            new Notice(t("Only Markdown files are supported"));
+            return;
+        }
+
+        const cache = this.app.metadataCache.getFileCache(activeFile);
+
+        // 检查是否已经有 langr 属性
+        if (cache?.frontmatter?.[FRONT_MATTER_KEY]) {
+            new Notice(t("File already formatted for reading"));
+            return;
+        }
+
+        // 弹出音频文件选择器
+        new AudioFileSuggestModal(this.app, async (audioFile) => {
+            let content = await this.app.vault.read(activeFile);
+            let newContent: string;
+
+            // 检查是否有 frontmatter
+            const frontMatterMatch = content.match(/^---\n([\s\S]*?)\n---\n?/);
+
+            if (frontMatterMatch) {
+                // 已有 frontmatter，添加 langr: true 和音频路径
+                const existingFm = frontMatterMatch[1];
+                let newFm = existingFm + "\nlangr: true";
+                if (audioFile) {
+                    newFm += `\nlangr-audio: ~/${audioFile.path}`;
+                }
+                const afterFm = content.slice(frontMatterMatch[0].length);
+
+                // 在 frontmatter 后添加 ^^^article
+                newContent = `---\n${newFm}\n---\n^^^article\n${afterFm}`;
+            } else {
+                // 没有 frontmatter，创建新的
+                let fm = "langr: true";
+                if (audioFile) {
+                    fm += `\nlangr-audio: ~/${audioFile.path}`;
+                }
+                newContent = `---\n${fm}\n---\n^^^article\n${content}`;
+            }
+
+            // 在文末添加 ^^^words 和 ^^^notes
+            // 先移除末尾可能的空白行，然后添加分隔符
+            newContent = newContent.trimEnd();
+            newContent += "\n\n^^^words\n\n\n\n^^^notes\n";
+
+            await this.app.vault.modify(activeFile, newContent);
+            new Notice(t("Article formatted for reading"));
+        }).open();
+    }
+
+    /**
+     * 设置或修改当前文章的音频文件
+     */
+    async setArticleAudio(): Promise<void> {
+        const activeFile = this.app.workspace.getActiveFile();
+
+        if (!activeFile) {
+            new Notice(t("No active file"));
+            return;
+        }
+
+        if (activeFile.extension !== "md") {
+            new Notice(t("Only Markdown files are supported"));
+            return;
+        }
+
+        // 弹出音频文件选择器
+        new AudioFileSuggestModal(this.app, async (audioFile) => {
+            if (audioFile) {
+                // 设置音频路径
+                await this.frontManager.setFrontMatter(
+                    activeFile,
+                    "langr-audio",
+                    `~/${audioFile.path}`
+                );
+                new Notice(t("Audio file set"));
+            }
+        }).open();
     }
 }

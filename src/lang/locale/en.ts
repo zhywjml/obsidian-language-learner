@@ -67,7 +67,22 @@ export default {
     "Accumulated": "Accumulated",
     "Statistics": "Statistics",
 
-    // settings
+    // settings - storage
+    "Data Storage": "Data Storage",
+    "Storage Type": "Storage Type",
+    "Markdown file supports Obsidian Sync and can be viewed/edited directly": "Markdown file supports Obsidian Sync and can be viewed/edited directly",
+    "Markdown File (Recommended)": "Markdown File (Recommended)",
+    "IndexedDB (Local)": "IndexedDB (Local)",
+    "Remote Server": "Remote Server",
+    "Markdown File Path": "Markdown File Path",
+    "Path relative to vault root, e.g. 'Language Learner/words.md'": "Path relative to vault root, e.g. 'Language Learner/words.md'",
+    "Migrate Data": "Migrate Data",
+    "Migrate from IndexedDB to Markdown file": "Migrate from IndexedDB to Markdown file",
+    "Migration completed": "Migration completed",
+    "No data to migrate": "No data to migrate",
+    "Migrate": "Migrate",
+
+    // settings - server
     "Use Server": "Use Server",
     "Use a seperated backend server": "Use a seperated backend server(Only for developer now)",
     "Use https": "Use https",
@@ -76,9 +91,11 @@ export default {
     "Input your api-key for authentication": "Input your api-key for authentication",
     "Server Host": "Server Host",
     "Your server's host name (like 11.11.11.11 or baidu.com)": "Your server's host name (like 11.11.11.11 or baidu.com)",
+    "Your server's host name": "Your server's host name",
     "Server Port": "Server Port",
     'It should be same as "PORT" variable in .env file of server':
         'It should be same as "PORT" variable in .env file of server',
+    "It should be same as 'PORT' variable in .env file of server": "It should be same as 'PORT' variable in .env file of server",
     "Wrong port format": "Wrong port format",
 
     "Language": "Language",
@@ -136,6 +153,7 @@ export default {
     "Reopen DB after changing database name": "Reopen app after switch database(when change database name)",
     "Import & Export": "Import & Export",
     "Warning: Import will override current database": "Warning: Import will override current database",
+    "Import will override current database": "Import will override current database",
     "Import": "Import",
     "Export": "Export",
     "Get all ignores": "Get all ignores",
@@ -173,4 +191,18 @@ export default {
     "Self as Server": "Self as Server",
     "Make plugin a server and interact with chrome extension": "Make plugin a server and interact with chrome extension",
     "when changing port, you should restart the server": "when changing port, you should restart the server",
+
+    // Format Article
+    "Format for Reading": "Format for Reading",
+    "No active file": "No active file",
+    "Only Markdown files are supported": "Only Markdown files are supported",
+    "File already formatted for reading": "File already formatted for reading",
+    "Article formatted for reading": "Article formatted for reading",
+
+    // Audio File
+    "Select an audio file or press Esc to skip": "Select an audio file or press Esc to skip",
+    "Set Article Audio": "Set Article Audio",
+    "Audio file set": "Audio file set",
+    "Clear Audio": "Clear Audio",
+    "Audio cleared": "Audio cleared",
 };

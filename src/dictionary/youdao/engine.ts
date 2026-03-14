@@ -194,9 +194,14 @@ function handleDOM(
     });
   }
 
+  // 翻译结果：尝试多个选择器（有道页面结构已变化）
   if (options.translation) {
+    // 先尝试旧的 #fanyiToggle，再尝试新的 #tWebTrans
     result.translation = getInnerHTML(HOST, doc, {
       selector: '#fanyiToggle .trans-container',
+      transform
+    }) || getInnerHTML(HOST, doc, {
+      selector: '#tWebTrans',
       transform
     });
   }

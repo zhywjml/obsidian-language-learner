@@ -1,15 +1,37 @@
+/**
+ * 插件设置模块
+ *
+ * 定义所有设置项及其默认值，包含设置面板 UI 实现
+ * 主要设置分组：
+ * - 后端服务器设置（可选）
+ * - 语言设置（母语/外语）
+ * - 查词设置（词典、快捷键等）
+ * - 数据库设置（IndexedDB）
+ * - 阅读模式设置
+ * - 自动补全设置
+ * - 复习设置
+ */
+
 import { App, Notice, PluginSettingTab, Setting, Modal, moment, debounce } from "obsidian";
 
 import { WebDb } from "./db/web_db";
 import { LocalDb } from "./db/local_db";
+import { MarkdownDb } from "./db/markdown_db";
 import Server from "./api/server";
 import LanguageLearner from "./plugin";
 import { t } from "./lang/helper";
-import { WarningModal, OpenFileModal } from "./modals"
+import { WarningModal, OpenFileModal, MarkdownFileSuggestModal } from "./modals"
 import { dicts } from "@dict/list";
 import store from "./store";
 
+// 存储类型
+export type StorageType = "indexeddb" | "markdown" | "server";
+
 export interface MyPluginSettings {
+    // storage
+    storage_type: StorageType;
+    md_db_path: string;  // Markdown 文件存储路径
+    // server
     use_server: boolean;
     host: string,
     port: number;
@@ -32,6 +54,7 @@ export interface MyPluginSettings {
     font_size: string;
     font_family: string;
     line_height: string;
+    word_spacing: string;
     use_machine_trans: boolean;
     // indexed db
     db_name: string;
@@ -46,6 +69,10 @@ export interface MyPluginSettings {
 }
 
 export const DEFAULT_SETTINGS: MyPluginSettings = {
+    // storage
+    storage_type: "markdown",  // 默认使用 Markdown 文件（支持 Obsidian Sync）
+    md_db_path: "Language Learner/words.md",  // Markdown 文件路径
+    // server
     use_server: false,
     port: 8086,
     host: "127.0.0.1",
@@ -80,6 +107,7 @@ export const DEFAULT_SETTINGS: MyPluginSettings = {
     font_size: "15px",
     font_family: '"Times New Roman"',
     line_height: "1.8em",
+    word_spacing: "0em",
     use_machine_trans: true,
     word_count: true,
     // review
@@ -101,7 +129,7 @@ export class SettingTab extends PluginSettingTab {
         containerEl.empty();
         containerEl.createEl("h1", { text: "Settings for Language Learner" });
 
-        this.backendSettings(containerEl);
+        this.storageSettings(containerEl);
         this.langSettings(containerEl);
         this.querySettings(containerEl);
         this.indexedDBSettings(containerEl);
@@ -112,7 +140,149 @@ export class SettingTab extends PluginSettingTab {
         this.selfServerSettings(containerEl);
     }
 
+    storageSettings(containerEl: HTMLElement) {
+        containerEl.createEl("h3", { text: t("Data Storage") });
+
+        new Setting(containerEl)
+            .setName(t("Storage Type"))
+            .setDesc(t("Markdown file supports Obsidian Sync and can be viewed/edited directly"))
+            .addDropdown(dropdown => dropdown
+                .addOption("indexeddb", t("IndexedDB (Local)"))
+                .addOption("markdown", t("Markdown File (Recommended)"))
+                .addOption("server", t("Remote Server"))
+                .setValue(this.plugin.settings.storage_type)
+                .onChange(async (value: StorageType) => {
+                    this.plugin.settings.storage_type = value;
+                    await this.plugin.switchStorage(value);
+                    await this.plugin.saveSettings();
+                    this.display();
+                })
+            );
+
+        // Markdown 文件路径设置
+        if (this.plugin.settings.storage_type === "markdown") {
+            new Setting(containerEl)
+                .setName(t("Markdown File Path"))
+                .setDesc(t("Path relative to vault root, e.g. 'Language Learner/words.md'"))
+                .addText(text => text
+                    .setValue(this.plugin.settings.md_db_path)
+                    .setPlaceholder("Language Learner/words.md")
+                    .onChange(debounce(async (path) => {
+                        if (path.trim()) {
+                            this.plugin.settings.md_db_path = path.trim();
+                            await this.plugin.switchStorage("markdown");
+                            await this.plugin.saveSettings();
+                        }
+                    }, 1000, true))
+                )
+                .addButton(button => button
+                    .setButtonText("选择文件")
+                    .onClick(() => {
+                        new MarkdownFileSuggestModal(this.app, async (file) => {
+                            this.plugin.settings.md_db_path = file.path;
+                            await this.plugin.switchStorage("markdown");
+                            await this.plugin.saveSettings();
+                            this.display(); // 刷新设置页面
+                        }).open();
+                    })
+                );
+
+            // 迁移按钮
+            new Setting(containerEl)
+                .setName(t("Migrate Data"))
+                .setDesc(t("Migrate from IndexedDB to Markdown file"))
+                .addButton(button => button
+                    .setButtonText(t("Migrate"))
+                    .onClick(async () => {
+                        await this.migrateFromIndexedDB();
+                    })
+                );
+        }
+
+        // 服务器设置（当选择 server 时显示）
+        if (this.plugin.settings.storage_type === "server") {
+            new Setting(containerEl)
+                .setName(t("Use https"))
+                .setDesc(t("Be sure your server enabled https"))
+                .addToggle(toggle => toggle
+                    .setValue(this.plugin.settings.use_https)
+                    .onChange(async (use_https) => {
+                        this.plugin.settings.use_https = use_https;
+                        await this.plugin.saveSettings();
+                        this.display();
+                    })
+                );
+
+            if (this.plugin.settings.use_https) {
+                new Setting(containerEl)
+                    .setName(t("Api Key"))
+                    .setDesc(t("Input your api-key for authentication"))
+                    .addText((text) =>
+                        text
+                            .setValue(this.plugin.settings.api_key)
+                            .onChange(debounce(async (api_key) => {
+                                this.plugin.settings.api_key = api_key;
+                                await this.plugin.saveSettings();
+                            }, 500, true))
+                    );
+            }
+
+            new Setting(containerEl)
+                .setName(t("Server Host"))
+                .setDesc(t("Your server's host name"))
+                .addText((text) =>
+                    text
+                        .setValue(this.plugin.settings.host)
+                        .onChange(debounce(async (host) => {
+                            this.plugin.settings.host = host;
+                            await this.plugin.saveSettings();
+                        }, 500, true))
+                );
+
+            new Setting(containerEl)
+                .setName(t("Server Port"))
+                .setDesc(t("It should be same as 'PORT' variable in .env file of server"))
+                .addText((text) =>
+                    text
+                        .setValue(String(this.plugin.settings.port))
+                        .onChange(debounce(async (port) => {
+                            let p = Number(port);
+                            if (!isNaN(p)) {
+                                this.plugin.settings.port = p;
+                                await this.plugin.saveSettings();
+                            } else {
+                                new Notice(t("Wrong port format"));
+                            }
+                        }, 500, true))
+                );
+        }
+
+        // 导入导出按钮
+        new Setting(containerEl)
+            .setName(t("Import & Export"))
+            .setDesc(t("Import will override current database"))
+            .addButton(button => button
+                .setButtonText(t("Import"))
+                .onClick(async () => {
+                    let modal = new OpenFileModal(this.plugin.app, async (file: File) => {
+                        await this.plugin.db.importDB(file);
+                        new Notice("Imported");
+                    });
+                    modal.open();
+                })
+            )
+            .addButton(button => button
+                .setButtonText(t("Export"))
+                .onClick(async () => {
+                    await this.plugin.db.exportDB();
+                    new Notice("Exported");
+                })
+            );
+    }
+
     backendSettings(containerEl: HTMLElement) {
+        // 保留此方法以兼容旧设置，但不再在 display 中调用
+        // 已由 storageSettings 替代
         new Setting(containerEl)
             .setName(t("Use Server"))
             .setDesc(t("Use a seperated backend server"))
@@ -639,6 +809,46 @@ export class SettingTab extends PluginSettingTab {
                     }, 1000, true))
             );
 
+    }
+
+    /**
+     * 从 IndexedDB 迁移数据到 Markdown 文件
+     */
+    async migrateFromIndexedDB() {
+        const { LocalDb } = await import("./db/local_db");
+        const { MarkdownDb } = await import("./db/markdown_db");
+
+        // 创建临时 IndexedDB 实例读取数据
+        const localDb = new LocalDb(this.plugin);
+        await localDb.open();
+
+        // 获取所有数据
+        const allWords = await localDb.getAllExpressionSimple(false);
+
+        if (allWords.length === 0) {
+            new Notice(t("No data to migrate"));
+            localDb.close();
+            return;
+        }
+
+        // 创建 Markdown 实例
+        const mdDb = new MarkdownDb(this.plugin, this.plugin.settings.md_db_path);
+        await mdDb.open();
+
+        // 迁移数据
+        let count = 0;
+        for (const word of allWords) {
+            const fullWord = await localDb.getExpression(word.expression);
+            if (fullWord) {
+                await mdDb.postExpression(fullWord);
+                count++;
+            }
+        }
+
+        localDb.close();
+        mdDb.close();
+
+        new Notice(`${t("Migration completed")}: ${count} words`);
     }
 
 }

@@ -66,7 +66,22 @@ export default {
     "Accumulated": "累计",
     "Statistics": "统计",
 
-    // settings
+    // settings - storage
+    "Data Storage": "数据存储",
+    "Storage Type": "存储方式",
+    "Markdown file supports Obsidian Sync and can be viewed/edited directly": "Markdown 文件支持 Obsidian 同步，可直接查看和编辑",
+    "Markdown File (Recommended)": "Markdown 文件（推荐）",
+    "IndexedDB (Local)": "IndexedDB（本地）",
+    "Remote Server": "远程服务器",
+    "Markdown File Path": "Markdown 文件路径",
+    "Path relative to vault root, e.g. 'Language Learner/words.md'": "相对于库根目录的路径，如 'Language Learner/words.md'",
+    "Migrate Data": "迁移数据",
+    "Migrate from IndexedDB to Markdown file": "从 IndexedDB 迁移到 Markdown 文件",
+    "Migration completed": "迁移完成",
+    "No data to migrate": "没有数据需要迁移",
+    "Migrate": "迁移",
+
+    // settings - server
     "Use Server": "使用服务器",
     "Use a seperated backend server": "使用单独的后端服务器(目前只对作者有用)",
     "Use https": "使用HTTPS",
@@ -169,5 +184,19 @@ export default {
     "As Server": "成为服务器",
     "Self as Server": "开启服务器功能",
     "Make plugin a server and interact with chrome extension": "插件打开一个服务器提供api，由此可以与谷歌浏览器插件交互",
-    "when changing port, you should restart the server": "如果改变端口，请重启服务器"
+    "when changing port, you should restart the server": "如果改变端口，请重启服务器",
+
+    // Format Article
+    "Format for Reading": "格式化为阅读模式",
+    "No active file": "没有打开的文件",
+    "Only Markdown files are supported": "只支持 Markdown 文件",
+    "File already formatted for reading": "文件已经是阅读格式了",
+    "Article formatted for reading": "文章已格式化为阅读模式",
+
+    // Audio File
+    "Select an audio file or press Esc to skip": "选择一个音频文件，或按 Esc 跳过",
+    "Set Article Audio": "设置文章音频",
+    "Audio file set": "已设置音频文件",
+    "Clear Audio": "清除音频",
+    "Audio cleared": "已清除音频",
 };

@@ -16,12 +16,36 @@
                         <CountBar v-if="plugin.settings.word_count" :unknown="unknown" :learn="learn"
                             :ignore="ignore" />
                     </div>
+                    <!-- 样式设置按钮 -->
+                    <button class="style-settings-btn" @click="showStyleSettings = !showStyleSettings" title="阅读样式设置">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                            <path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+                        </svg>
+                    </button>
                     <button v-if="page * pageSize < totalLines" class="finish-reading" @click="addIgnores">
                         结束阅读并转入下一页
                     </button>
                     <button v-else class="finish-reading" @click="addIgnores">
                         结束阅读
                     </button>
+                </div>
+            </div>
+            <!-- 样式设置面板 -->
+            <div class="style-settings-panel" v-if="showStyleSettings">
+                <div class="style-item">
+                    <label>字号</label>
+                    <input type="range" v-model="fontSizeNum" min="12" max="28" step="1" />
+                    <span class="style-value">{{ fontSizeNum }}px</span>
+                </div>
+                <div class="style-item">
+                    <label>行距</label>
+                    <input type="range" v-model="lineHeightNum" min="1" max="3" step="0.1" />
+                    <span class="style-value">{{ lineHeightNum }}</span>
+                </div>
+                <div class="style-item">
+                    <label>字距</label>
+                    <input type="range" v-model="wordSpacingNum" min="-0.1" max="0.5" step="0.05" />
+                    <span class="style-value">{{ wordSpacingNum }}em</span>
                 </div>
             </div>
             <!-- 阅读区 -->
@@ -34,6 +58,7 @@
                     fontSize: store.fontSize,
                     fontFamily: store.fontFamily,
                     lineHeight: store.lineHeight,
+                    wordSpacing: store.wordSpacing,
                 }" v-html="renderedText" />
             <!-- 底栏 -->
             <div class="pagination" style="
@@ -42,8 +67,11 @@
                     display: flex;
                     flex-direction: column;
                 ">
-                <NPagination style="justify-content: center" v-model:page="page" v-model:page-size="pageSize"
-                    :item-count="totalLines" show-size-picker :page-sizes="pageSizes" :page-slot="pageSlot" />
+                <DockPagination
+                    v-model:page="page"
+                    v-model:pageSize="pageSize"
+                    :total="totalLines"
+                />
             </div>
             <NDrawer v-model:show="activeNotes" :placement="'bottom'" :close-on-esc="true" :auto-focus="true"
                 :on-after-enter="afterNoteEnter" :on-after-leave="afterNoteLeave" to="#langr-reading"
@@ -71,7 +99,6 @@ import {
     watchEffect,
 } from "vue";
 import {
-    NPagination,
     NConfigProvider,
     darkTheme,
     NDrawer,
@@ -86,6 +113,7 @@ import { useEvent } from "@/utils/use";
 import store from "@/store";
 import { ReadingView } from "./ReadingView";
 import CountBar from "./CountBar.vue";
+import DockPagination from "./DockPagination.vue";
 
 let vueThis = getCurrentInstance();
 let view = vueThis.appContext.config.globalProperties.view as ReadingView;
@@ -158,6 +186,9 @@ function onMouseOver(e: MouseEvent) {
 // 拆分文本
 let lines = view.text.split("\n");
 let segments = view.divide(lines);
+if (!segments["article"]) {
+    segments["article"] = { start: 0, end: lines.length };
+}
 
 let article = lines.slice(segments["article"].start, segments["article"].end);
 let totalLines = article.length;
@@ -191,42 +222,44 @@ if (plugin.settings.word_count) {
 
 // 分页渲染文本
 
-const pageSizes = [
-    { label: `1 ${t("paragraph")} / ${t("page")}`, value: 2 },
-    { label: `2 ${t("paragraph")} / ${t("page")}`, value: 4 },
-    { label: `4 ${t("paragraph")} / ${t("page")}`, value: 8 },
-    { label: `8 ${t("paragraph")} / ${t("page")}`, value: 16 },
-    { label: `16 ${t("paragraph")} / ${t("page")}`, value: 32 },
-    { label: `${t("All")}`, value: Number.MAX_VALUE },
-];
-
-const pageSlot = Platform.isMobileApp ? 5 : null;
-
 let dp = plugin.settings.default_paragraphs;
 let pageSize = dp === "all" ? ref(Number.MAX_VALUE) : ref(parseInt(dp));
 let page = view.lastPos
     ? ref(Math.ceil(view.lastPos / pageSize.value))
     : ref(1);
 
+// 样式设置面板
+let showStyleSettings = ref(false);
+
+// 从设置初始化样式值
+let fontSizeNum = ref(parseInt(plugin.settings.font_size) || 15);
+let lineHeightNum = ref(parseFloat(plugin.settings.line_height) || 1.8);
+let wordSpacingNum = ref(parseFloat(plugin.settings.word_spacing) || 0);
+
+// 监听样式变化并更新 store
+watch([fontSizeNum, lineHeightNum, wordSpacingNum], ([fs, lh, ws]) => {
+    store.fontSize = `${fs}px`;
+    store.lineHeight = `${lh}`;
+    store.wordSpacing = `${ws}em`;
+}, { immediate: true });
+
 let renderedText = ref("");
-let psChange = ref(true); // 标志pageSize的改变
 let refreshHandle = ref(true);
 
 // pageSize变化应该使page同时进行调整以尽量保持原阅读位置
-// 同时page和pageSize的改变都应该引起langr-pos的改变，但应只修改一次
-// 因此引入psChange这个变量
 watch([pageSize], async ([ps], [prev_ps]) => {
     let oldPage = page.value;
     page.value = Math.ceil(((page.value - 1) * prev_ps + 1) / ps);
+    // 如果页码没变，手动触发刷新
     if (oldPage === page.value) {
-        psChange.value = !psChange.value;
+        refreshHandle.value = !refreshHandle.value;
     }
 });
 
 watch(
-    [page, psChange, refreshHandle],
-    async ([p, pc], [prev_p, prev_pc]) => {
-        let start = (p - 1) * pageSize.value;
+    [page, refreshHandle],
+    async () => {
+        let start = (page.value - 1) * pageSize.value;
         let end =
             start + pageSize.value > totalLines
                 ? totalLines
@@ -236,13 +269,11 @@ watch(
             article.slice(start, end).join("\n")
         );
 
-        if (p !== prev_p || pc != prev_pc) {
-            plugin.frontManager.setFrontMatter(
-                view.file,
-                "langr-pos",
-                `${(p - 1) * pageSize.value + 1}`
-            );
-        }
+        plugin.frontManager.setFrontMatter(
+            view.file,
+            "langr-pos",
+            `${(page.value - 1) * pageSize.value + 1}`
+        );
     },
     { immediate: true }
 );
@@ -258,16 +289,24 @@ async function addIgnores() {
     ignores.forEach((el) => {
         ignore_words.add(el.textContent.toLowerCase());
     });
-    await plugin.db.postIgnoreWords([...ignore_words]);
-    // this.setViewData(this.data)
-    refreshHandle.value = !refreshHandle.value;
-    dispatchEvent(new CustomEvent("obsidian-langr-refresh-stat"));
 
-    if (page.value * pageSize.value < totalLines) {
-        page.value++;
+    if (ignore_words.size > 0) {
+        await plugin.db.postIgnoreWords([...ignore_words]);
     }
 
+    // 触发统计刷新
+    dispatchEvent(new CustomEvent("obsidian-langr-refresh-stat"));
+
+    // 刷新计数
     refreshCount();
+
+    if (page.value * pageSize.value < totalLines) {
+        // 进入下一页，触发 watch 重新解析
+        page.value++;
+    } else {
+        // 最后一页，手动刷新当前页面
+        refreshHandle.value = !refreshHandle.value;
+    }
 }
 
 let reading = ref(null);
@@ -435,6 +474,81 @@ if (plugin.constants.platform === "mobile") {
 .is-mobile #langr-reading {
     .pagination {
         padding-bottom: 48px;
+    }
+}
+
+// 样式设置面板
+.style-settings-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    margin-right: 8px;
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.15s ease;
+
+    &:hover {
+        background: var(--background-secondary-alt);
+        color: var(--text-normal);
+    }
+}
+
+.style-settings-panel {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    padding: 12px 16px;
+    background: var(--background-secondary);
+    border-bottom: 1px solid var(--background-modifier-border);
+
+    .style-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        label {
+            font-size: 12px;
+            color: var(--text-muted);
+            min-width: 32px;
+        }
+
+        input[type="range"] {
+            width: 100px;
+            height: 4px;
+            background: var(--background-modifier-border);
+            border-radius: 2px;
+            cursor: pointer;
+            -webkit-appearance: none;
+
+            &::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                width: 14px;
+                height: 14px;
+                background: var(--interactive-accent);
+                border-radius: 50%;
+                cursor: pointer;
+            }
+
+            &::-moz-range-thumb {
+                width: 14px;
+                height: 14px;
+                background: var(--interactive-accent);
+                border-radius: 50%;
+                cursor: pointer;
+                border: none;
+            }
+        }
+
+        .style-value {
+            font-size: 11px;
+            color: var(--text-muted);
+            min-width: 48px;
+            text-align: right;
+        }
     }
 }
 </style>
