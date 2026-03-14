@@ -53,9 +53,9 @@
 3. **支持格式**：mp3, wav, ogg, m4a, flac, aac, wma
 4. **跳过设置**：按 Esc 键可跳过不设置音频
 
-<!-- 插入图片：音频播放器界面 -->
-![alt text](Snipaste_2026-03-14_14-39-25.png)
-
+<p align="center">
+  <img src="Snipaste_2026-03-14_14-39-25.png" alt="音频播放器界面" width="600">
+</p>
 
 #### 离线词典功能
 
@@ -75,15 +75,17 @@
 
 ### 界面展示
 
-<!-- 插入图片：阅读模式界面 -->
-![alt text](image.png)
+<p align="center">
+  <img src="image.png" alt="阅读模式界面" width="600">
+</p>
 
-<!-- 插入图片：单词列表面板 -->
-![alt text](image-1.png)
+<p align="center">
+  <img src="image-1.png" alt="单词列表面板" width="600">
+</p>
 
-<!-- 插入图片：离线词典面板 -->
-![alt text](image-2.png)
-
+<p align="center">
+  <img src="image-2.png" alt="离线词典面板" width="600">
+</p>
 
 ### 测试通过的词典
 
@@ -188,16 +190,17 @@ Play local audio files while reading:
 
 ### Screenshots
 
-<!-- Insert image: Reading mode -->
+<p align="center">
+  <img src="image.png" alt="Reading mode" width="600">
+</p>
 
+<p align="center">
+  <img src="image-1.png" alt="Word list panel" width="600">
+</p>
 
-<!-- Insert image: Word list panel -->
-
-
-<!-- Insert image: Offline dictionary panel -->
-
-
-<!-- Insert image: Auto-completion -->
+<p align="center">
+  <img src="image-2.png" alt="Offline dictionary panel" width="600">
+</p>
 
 
 ### Tested Dictionaries
