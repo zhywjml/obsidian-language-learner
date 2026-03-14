@@ -189,4 +189,40 @@ class AudioFileSuggestModal extends FuzzySuggestModal<TFile> {
     }
 }
 
-export { OpenFileModal, WarningModal, InputModal, MarkdownFileSuggestModal, AudioFileSuggestModal };
+// MDX 词典文件选择器
+class MdictFileSuggestModal extends FuzzySuggestModal<TFile> {
+    files: TFile[];
+    private onSelect: (file: TFile) => void;
+    // 支持的词典格式
+    static MDICT_EXTENSIONS = ["mdx", "mdd"];
+
+    constructor(app: App, onSelect: (file: TFile) => void) {
+        super(app);
+        this.onSelect = onSelect;
+        // 获取所有 MDX/MDD 文件
+        this.files = this.getMdictFiles();
+        // 设置提示文本
+        this.setPlaceholder(t("Select a MDX dictionary file"));
+    }
+
+    getMdictFiles(): TFile[] {
+        const allFiles = this.app.vault.getFiles();
+        return allFiles.filter(file =>
+            MdictFileSuggestModal.MDICT_EXTENSIONS.includes(file.extension.toLowerCase())
+        );
+    }
+
+    getItems(): TFile[] {
+        return this.files;
+    }
+
+    getItemText(file: TFile): string {
+        return file.path;
+    }
+
+    onChooseItem(file: TFile, evt: MouseEvent | KeyboardEvent): void {
+        this.onSelect(file);
+    }
+}
+
+export { OpenFileModal, WarningModal, InputModal, MarkdownFileSuggestModal, AudioFileSuggestModal, MdictFileSuggestModal };

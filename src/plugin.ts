@@ -28,6 +28,7 @@ import { READING_VIEW_TYPE, READING_ICON, ReadingView } from "./views/ReadingVie
 import { LearnPanelView, LEARN_ICON, LEARN_PANEL_VIEW } from "./views/LearnPanelView";
 import { StatView, STAT_ICON, STAT_VIEW_TYPE } from "./views/StatView";
 import { DataPanelView, DATA_ICON, DATA_PANEL_VIEW } from "./views/DataPanelView";
+import { MdictPanelView, MDICT_ICON, MDICT_PANEL_VIEW } from "./dictionary/mdict/MdictPanelView";
 // import { PDFView, PDF_FILE_EXTENSION, VIEW_TYPE_PDF } from "./views/PDFView";
 
 import { t } from "./lang/helper";
@@ -38,6 +39,7 @@ import { MarkdownDb } from "./db/markdown_db";
 import { TextParser } from "./views/parser";
 import { FrontMatterManager } from "./utils/frontmatter";
 import Server from "./api/server";
+import { MdictEngine, createMdictEngine } from "./dictionary/mdict/engine";
 
 import { DEFAULT_SETTINGS, MyPluginSettings, SettingTab, StorageType } from "./settings";
 import store from "./store";
@@ -73,6 +75,8 @@ export default class LanguageLearner extends Plugin {
     markdownButtons: Record<string, HTMLElement> = {};
     // Frontmatter 管理器
     frontManager: FrontMatterManager;
+    // MDict 离线词典引擎
+    mdictEngine: MdictEngine | null = null;
     // Vue 响应式状态
     store: typeof store = store;
 
@@ -89,6 +93,11 @@ export default class LanguageLearner extends Plugin {
         // 设置解析器
         this.parser = new TextParser(this);
         this.frontManager = new FrontMatterManager(this.app);
+
+        // 初始化 MDict 引擎（仅桌面端）
+        if (Platform.isDesktopApp) {
+            this.mdictEngine = createMdictEngine(this.constants.basePath);
+        }
 
         // 打开内置服务器
         this.server = this.settings.self_server
@@ -133,12 +142,11 @@ export default class LanguageLearner extends Plugin {
         this.app.workspace.detachLeavesOfType(DATA_PANEL_VIEW);
         this.app.workspace.detachLeavesOfType(STAT_VIEW_TYPE);
         this.app.workspace.detachLeavesOfType(READING_VIEW_TYPE);
+        this.app.workspace.detachLeavesOfType(MDICT_PANEL_VIEW);
 
         this.db.close();
         this.server?.close();
-        // if (await app.vault.adapter.exists(".obsidian/plugins/obsidian-language-learner/pdf/web/viewer.html")) {
-        //     this.registerExtensions([PDF_FILE_EXTENSION], "pdf");
-        // }
+        this.mdictEngine?.close();
 
         this.vueApp.unmount();
         this.appEl.remove();
@@ -272,6 +280,17 @@ export default class LanguageLearner extends Plugin {
                 this.setArticleAudio();
             },
         });
+
+        // 注册打开离线词典命令（仅桌面端）
+        if (Platform.isDesktopApp) {
+            this.addCommand({
+                id: "langr-open-mdict-panel",
+                name: t("Open Offline Dictionary"),
+                callback: () => {
+                    this.activateView(MDICT_PANEL_VIEW, "right");
+                },
+            });
+        }
     }
 
     registerCustomViews() {
@@ -318,6 +337,17 @@ export default class LanguageLearner extends Plugin {
         this.addRibbonIcon("wand", t("Format for Reading"), async (evt) => {
             await this.formatArticleForReading();
         });
+
+        // 注册 MDict 离线词典面板（仅桌面端）
+        if (Platform.isDesktopApp) {
+            this.registerView(
+                MDICT_PANEL_VIEW,
+                (leaf) => new MdictPanelView(leaf, this)
+            );
+            this.addRibbonIcon(MDICT_ICON, t("Offline Dictionary"), (evt) => {
+                this.activateView(MDICT_PANEL_VIEW, "right");
+            });
+        }
     }
 
     async setMarkdownView(leaf: WorkspaceLeaf, focus: boolean = true) {

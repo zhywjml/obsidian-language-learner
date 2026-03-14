@@ -20,7 +20,7 @@ import { MarkdownDb } from "./db/markdown_db";
 import Server from "./api/server";
 import LanguageLearner from "./plugin";
 import { t } from "./lang/helper";
-import { WarningModal, OpenFileModal, MarkdownFileSuggestModal } from "./modals"
+import { WarningModal, OpenFileModal, MarkdownFileSuggestModal, MdictFileSuggestModal } from "./modals"
 import { dicts } from "@dict/list";
 import store from "./store";
 
@@ -66,6 +66,8 @@ export interface MyPluginSettings {
     // review
     review_prons: "0" | "1";
     review_delimiter: string;
+    // mdict
+    mdict_paths: { path: string; enabled: boolean }[];
 }
 
 export const DEFAULT_SETTINGS: MyPluginSettings = {
@@ -113,6 +115,8 @@ export const DEFAULT_SETTINGS: MyPluginSettings = {
     // review
     review_prons: "0",
     review_delimiter: "?",
+    // mdict
+    mdict_paths: [],
 };
 
 export class SettingTab extends PluginSettingTab {
@@ -132,6 +136,7 @@ export class SettingTab extends PluginSettingTab {
         this.storageSettings(containerEl);
         this.langSettings(containerEl);
         this.querySettings(containerEl);
+        this.mdictSettings(containerEl);
         this.indexedDBSettings(containerEl);
         this.textDBSettings(containerEl);
         this.readingSettings(containerEl);
@@ -766,6 +771,90 @@ export class SettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 })
             );
+    }
+
+    mdictSettings(containerEl: HTMLElement) {
+        containerEl.createEl("h3", { text: t("Offline Dictionary") });
+
+        // 词典列表
+        const dictListContainer = containerEl.createDiv({ cls: "mdict-list-container" });
+        this.renderMdictList(dictListContainer);
+
+        // 添加词典按钮
+        new Setting(containerEl)
+            .setName(t("Add Dictionary"))
+            .setDesc(t("Add a MDX dictionary file"))
+            .addButton(button => button
+                .setButtonText(t("Select MDX File"))
+                .onClick(() => {
+                    new MdictFileSuggestModal(this.app, async (file) => {
+                        // 检查是否已存在
+                        const exists = this.plugin.settings.mdict_paths.some(d => d.path === file.path);
+                        if (exists) {
+                            new Notice(t("Dictionary already added"));
+                            return;
+                        }
+                        // 添加新词典
+                        this.plugin.settings.mdict_paths.push({
+                            path: file.path,
+                            enabled: true
+                        });
+                        await this.plugin.saveSettings();
+                        this.renderMdictList(dictListContainer);
+                    }).open();
+                })
+            );
+    }
+
+    renderMdictList(container: HTMLElement) {
+        container.empty();
+
+        const paths = this.plugin.settings.mdict_paths;
+        if (paths.length === 0) {
+            container.createEl("p", {
+                text: t("No dictionary added"),
+                cls: "mdict-empty-hint"
+            });
+            return;
+        }
+
+        paths.forEach((dict, index) => {
+            const setting = new Setting(container)
+                .setName(dict.path.split("/").pop() || dict.path)
+                .setDesc(dict.path)
+                .addToggle(toggle => toggle
+                    .setValue(dict.enabled)
+                    .onChange(async (value) => {
+                        this.plugin.settings.mdict_paths[index].enabled = value;
+                        await this.plugin.saveSettings();
+                    })
+                );
+
+            // 删除按钮
+            setting.addExtraButton(button => button
+                .setIcon("trash")
+                .setTooltip(t("Remove"))
+                .onClick(async () => {
+                    this.plugin.settings.mdict_paths.splice(index, 1);
+                    await this.plugin.saveSettings();
+                    this.renderMdictList(container);
+                })
+            );
+
+            // 加载按钮
+            setting.addExtraButton(button => button
+                .setIcon("file-check")
+                .setTooltip(t("Load"))
+                .onClick(async () => {
+                    if (this.plugin.mdictEngine) {
+                        const success = await this.plugin.mdictEngine.loadDictionary(dict.path);
+                        if (success) {
+                            new Notice(t("Dictionary loaded"));
+                        }
+                    }
+                })
+            );
+        });
     }
 
     selfServerSettings(containerEl: HTMLElement) {
