@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(npx tsc:*)",
+      "Bash(curl -s \"https://api.github.com/repos/guopenghui/obsidian-language-learner/issues?state=open&per_page=30\" | head -200)",
+      "Bash(npx npm-check-updates:*)",
+      "Bash(curl -s \"https://api.github.com/repos/guopenghui/obsidian-language-learner/issues?state=open&per_page=50\" | grep -E '\"number\"|\"title\"|\"state\"' | head -90)",
+      "WebFetch(domain:github.com)",
+      "Bash(curl -s \"https://api.github.com/repos/guopenghui/obsidian-language-learner/pulls/236\" | grep -E '\"body\"|\"state\"')",
+      "Bash(curl -s \"https://api.github.com/repos/Das1Zhang/obsidian-language-learner/pulls/1/files\" 2>/dev/null | head -100 || curl -sL \"https://patch-diff.githubusercontent.com/raw/guopenghui/obsidian-language-learner/pull/236.diff\" | head -80)",
+      "Bash(curl -sL \"https://patch-diff.githubusercontent.com/raw/guopenghui/obsidian-language-learner/pull/236.diff\" 2>/dev/null | head -100)",
+      "Bash(curl -s \"https://api.github.com/repos/guopenghui/obsidian-language-learner/issues/231\" | grep -E '\"body\"|\"comments\"' | head -5)",
+      "Bash(curl -sL \"https://dict.youdao.com/w/hello\" | grep -oP '\\(class=\"keyword\"|class=\"trans-container\"|id=\"collinsResult\"|error-typo\\)' | head -10)",
+      "Bash(curl -sL \"https://dict.youdao.com/w/hello\" | head -100)",
+      "Bash(curl -sL \"https://dict.youdao.com/w/hello\" | grep -E \"\\(error-typo|trans-container|baav|pronounce|keyword\\)\" | head -20)",
+      "Bash(curl -sL \"https://dict.youdao.com/w/hello\" | grep -E \"dictvoice|data-rel\" | head -10)",
+      "Bash(curl -sL \"https://dict.youdao.com/w/hello\" | grep \"error-typo\" | head -5)",
+      "Bash(curl -sL \"https://dict.youdao.com/w/test\" | grep -E \"error-typo|keyword\" | head -5)",
+      "Bash(curl -sL \"https://dict.youdao.com/w/hello%20world\" | grep -E \"keyword|error-typo\" | head -5)",
+      "Bash(curl -sL \"https://dict.youdao.com/w/This%20is%20a%20test\" | grep -E \"keyword|error-typo|trans-container\" | head -5)",
+      "WebSearch",
+      "Bash(curl -s \"https://api.github.com/repos/crimx/ext-saladict/commits?path=src/components/dictionaries/youdao&per_page=5\" | grep -E '\"sha\"|\"date\"|message' | head -20)",
+      "Bash(curl -sL \"https://dict.youdao.com/w/asdfghjkl\" | grep -E \"error-typo|keyword\" | head -5)",
+      "Bash(curl -sL \"https://dict.youdao.com/w/asdfghjkl\" | grep -c \"error-typo\")",
+      "Bash(curl -sL \"https://dict.youdao.com/w/hello\" | grep -E \"#collinsResult|#authority|#fanyiToggle\" | head -5)",
+      "Bash(curl -sL \"https://dict.youdao.com/w/hello\" | grep \"fanyiToggle\" | head -3)",
+      "Bash(curl -sL \"https://dict.youdao.com/w/hello\" | grep -E \"id=\\\\\"t[eE]ETrans|id=\\\\\"tWebTrans|翻译\" | head -10)",
+      "Bash(curl -sL \"https://dict.youdao.com/w/hello\" | grep -A 5 'id=\"tWebTrans\"' | head -10)",
+      "Bash(curl -sL \"https://dict.youdao.com/w/hello\" | grep -E \"id=\\\\\"[a-zA-Z]+\\\\\"\" | sort -u | head -30)",
+      "Bash(curl -sL \"https://dict.youdao.com/w/hello\" | grep \"keyword\" | head -3)",
+      "Bash(curl -sL \"https://dict.youdao.com/w/test\" | grep -E \"keyword|trans-container\" | head -5)",
+      "Bash(ls -la *.css)",
+      "Bash(gh auth:*)",
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(cd \"E:\\\\Data_Claude\\\\obsidian-language-learner\" && npm search mdict --json 2>/dev/null | head -100 || npm search mdict 2>/dev/null | head -20)",
+      "Bash(node -e \"console.log\\(require\\('builtin-modules'\\).join\\(','\\)\\)\")",
+      "WebFetch(domain:mdx.mdict.org)"
+    ]
+  }
+}
