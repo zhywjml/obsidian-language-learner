@@ -97,6 +97,14 @@ export default class LanguageLearner extends Plugin {
         // 初始化 MDict 引擎（仅桌面端）
         if (Platform.isDesktopApp) {
             this.mdictEngine = createMdictEngine(this.constants.basePath);
+            // 自动加载第一个已启用的词典
+            const mdictPaths = this.settings.mdict_paths;
+            if (mdictPaths && mdictPaths.length > 0) {
+                const firstEnabled = mdictPaths.find((d: any) => d.enabled);
+                if (firstEnabled) {
+                    this.mdictEngine.loadDictionary(firstEnabled.path);
+                }
+            }
         }
 
         // 打开内置服务器
