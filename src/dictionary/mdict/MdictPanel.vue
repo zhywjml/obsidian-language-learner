@@ -1,41 +1,44 @@
 <template>
     <div id="mdict-panel" @click="handleClick">
-        <NConfigProvider :theme="theme" :theme-overrides="themeConfig">
-            <!-- 搜索栏 -->
-            <div class="search-bar" style="display:flex;">
-                <NButtonGroup size="tiny">
-                    <NButton :disabled="historyIndex <= 0" @click="switchHistory('prev')">{{ `<` }}</NButton>
-                    <NButton :disabled="historyIndex >= lastHistory" @click="switchHistory('next')">{{ `>` }}</NButton>
-                </NButtonGroup>
-                <NInput size="tiny" type="text" :placeholder="t('Search word...')" v-model:value="searchWord" style="flex:1;"
-                    @keydown.enter="handleSearch" />
-                <NButton size="tiny" @click="handleSearch" style="margin-left:5px;">{{ t("Search") }}</NButton>
+        <!-- 搜索栏 -->
+        <div class="search-bar">
+            <div class="nav-buttons">
+                <button class="nav-btn" :disabled="historyIndex <= 0" @click="switchHistory('prev')">&lt;</button>
+                <button class="nav-btn" :disabled="historyIndex >= lastHistory" @click="switchHistory('next')">&gt;</button>
             </div>
+            <input
+                type="text"
+                class="search-input"
+                :placeholder="t('Search word...')"
+                v-model="searchWord"
+                @keydown.enter="handleSearch"
+            />
+            <button class="search-btn" @click="handleSearch">{{ t("Search") }}</button>
+        </div>
 
-            <!-- 词典选择器 -->
-            <div class="dict-selector" v-if="dictPaths.length > 0">
-                <div
-                    class="dict-dropdown"
-                    @mouseenter="showDropdown = true"
-                    @mouseleave="showDropdown = false"
-                >
-                    <span class="dict-label">{{ currentDictName }}</span>
-                    <div class="dropdown-menu" v-show="showDropdown">
-                        <div
-                            v-for="dict in dictPaths"
-                            :key="dict.path"
-                            class="dropdown-item"
-                            :class="{ active: selectedDict === dict.path, disabled: !dict.enabled }"
-                            @click="dict.enabled && switchDictionary(dict.path)"
-                        >{{ getDictName(dict.path) }}</div>
-                    </div>
+        <!-- 词典选择器 -->
+        <div class="dict-selector" v-if="dictPaths.length > 0">
+            <div
+                class="dict-dropdown"
+                @mouseenter="showDropdown = true"
+                @mouseleave="showDropdown = false"
+            >
+                <span class="dict-label">{{ currentDictName }}</span>
+                <div class="dropdown-menu" v-show="showDropdown">
+                    <div
+                        v-for="dict in dictPaths"
+                        :key="dict.path"
+                        class="dropdown-item"
+                        :class="{ active: selectedDict === dict.path, disabled: !dict.enabled }"
+                        @click="dict.enabled && switchDictionary(dict.path)"
+                    >{{ getDictName(dict.path) }}</div>
                 </div>
             </div>
-            <div class="dict-status" v-else>
-                <span class="no-dict">{{ t("No dictionary loaded") }}</span>
-                <NButton size="tiny" @click="openSettings">{{ t("Settings") }}</NButton>
-            </div>
-        </NConfigProvider>
+        </div>
+        <div class="dict-status" v-else>
+            <span class="no-dict">{{ t("No dictionary loaded") }}</span>
+            <button class="settings-btn" @click="openSettings">{{ t("Settings") }}</button>
+        </div>
 
         <!-- 结果区域 -->
         <div class="result-area" style="overflow:auto;">
@@ -58,20 +61,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, getCurrentInstance, watch } from "vue";
 import { Notice, Platform } from "obsidian";
-import { NConfigProvider, NButton, NButtonGroup, NInput, darkTheme, GlobalThemeOverrides } from "naive-ui";
 import { t } from "@/lang/helper";
 import PluginType from "@/plugin";
 import MdictView from "./View.vue";
 import { MdictEngine } from "./engine";
 
 const plugin = getCurrentInstance().appContext.config.globalProperties.plugin as PluginType;
-
-// Naive UI 主题配置
-const theme = computed(() => {
-    return plugin.store.dark ? darkTheme : null;
-});
-
-const themeConfig: GlobalThemeOverrides = {};
 
 // 获取词典引擎
 const engine = computed(() => plugin.mdictEngine as MdictEngine | null);
@@ -226,10 +221,72 @@ onUnmounted(() => {
     flex-direction: column;
 
     .search-bar {
+        display: flex;
         margin-bottom: 5px;
 
-        button {
+        .nav-buttons {
+            display: flex;
             margin-right: 5px;
+        }
+
+        .nav-btn {
+            padding: 2px 8px;
+            background: var(--background-secondary);
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 4px;
+            color: var(--text-normal);
+            cursor: pointer;
+            font-size: 12px;
+
+            &:hover:not(:disabled) {
+                background: var(--background-secondary-alt);
+            }
+
+            &:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+            &:first-child {
+                border-top-right-radius: 0;
+                border-bottom-right-radius: 0;
+            }
+
+            &:last-child {
+                border-top-left-radius: 0;
+                border-bottom-left-radius: 0;
+                border-left: none;
+            }
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 4px 8px;
+            background: var(--background-primary);
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 4px;
+            color: var(--text-normal);
+            font-size: 12px;
+
+            &:focus {
+                outline: none;
+                border-color: var(--interactive-accent);
+            }
+        }
+
+        .search-btn {
+            margin-left: 5px;
+            padding: 4px 12px;
+            background: var(--interactive-accent);
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 4px;
+            color: var(--text-on-accent);
+            cursor: pointer;
+            font-size: 12px;
+
+            &:hover {
+                opacity: 0.9;
+            }
         }
     }
 
@@ -302,6 +359,20 @@ onUnmounted(() => {
         .no-dict {
             color: var(--text-muted);
             font-size: 12px;
+        }
+
+        .settings-btn {
+            padding: 4px 12px;
+            background: var(--background-secondary);
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 4px;
+            color: var(--text-normal);
+            cursor: pointer;
+            font-size: 12px;
+
+            &:hover {
+                background: var(--background-secondary-alt);
+            }
         }
     }
 

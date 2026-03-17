@@ -229,4 +229,11 @@ export default {
     "Default Dictionary": "Default Dictionary",
     "Choose which dictionary to show by default when searching words": "Choose which dictionary to show by default when searching words",
     "Online Dictionary": "Online Dictionary",
+    // Tags
+    "Filter by tags": "Filter by tags",
+    "Select multiple to filter": "Select multiple to filter",
+    "Create new tag": "Create new tag",
+    "Tag name": "Tag name",
+    "Add": "Add",
+    "selected": "selected",
 };

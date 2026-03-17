@@ -1,17 +1,19 @@
 <template>
     <div id="langr-search" @click="handleClick">
-        <NConfigProvider :theme="theme" :theme-overrides="themeConfig">
-            <div class="search-bar" style="display:flex;">
-                <NButtonGroup size="tiny">
-                    <NButton :disabled="historyIndex <= 0" @click="switchHistory('prev')">{{ `<` }} </NButton>
-                            <NButton :disabled="historyIndex >= lastHistory" @click="switchHistory('next')">{{ ">" }}
-                            </NButton>
-                </NButtonGroup>
-                <NInput size="tiny" type="text" placeholder="输入单词" v-model:value="inputWord" style="flex:1;"
-                    @keydown.enter="handleSearch" />
-                <NButton size="tiny" @click="handleSearch" style="margin-left:5px;">{{ t("Search") }}</NButton>
+        <div class="search-bar">
+            <div class="nav-buttons">
+                <button class="nav-btn" :disabled="historyIndex <= 0" @click="switchHistory('prev')">&lt;</button>
+                <button class="nav-btn" :disabled="historyIndex >= lastHistory" @click="switchHistory('next')">&gt;</button>
             </div>
-        </NConfigProvider>
+            <input
+                type="text"
+                class="search-input"
+                :placeholder="t('Search word...')"
+                v-model="inputWord"
+                @keydown.enter="handleSearch"
+            />
+            <button class="search-btn" @click="handleSearch">{{ t("Search") }}</button>
+        </div>
         <div class="dict-area" style="overflow:auto;">
             <DictItem v-for="(cp, i) in components" :loading="loadings[i]" :name="cp.name" :id="cp.id">
                 <KeepAlive>
@@ -24,7 +26,6 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, getCurrentInstance } from "vue";
-import { NConfigProvider, NButton, NButtonGroup, NInput, darkTheme, GlobalThemeOverrides } from "naive-ui";
 
 import DictItem from "./DictItem.vue";
 import { t } from "@/lang/helper";
@@ -33,10 +34,6 @@ import { dicts } from "@dict/list";
 import { playAudio } from "@/utils/helpers";
 
 const plugin = getCurrentInstance().appContext.config.globalProperties.plugin as PluginType;
-
-const themeConfig: GlobalThemeOverrides = {
-
-};
 
 let components = ref([]);
 let map: { [K in string]: number } = {};
@@ -75,11 +72,6 @@ function loading({ id, loading, result }: { id: string, loading: boolean, result
     loadings.value[map[id]] = loading;
     shows.value[map[id]] = result;
 }
-
-// 切换明亮/黑暗模式
-const theme = computed(() => {
-    return plugin.store.dark ? darkTheme : null;
-});
 
 // 提供一个前进后退查询记录的功能
 let history: string[] = [];
@@ -154,15 +146,78 @@ onUnmounted(() => {
     flex-direction: column;
 
     .search-bar {
+        display: flex;
         margin-bottom: 5px;
 
-        button {
+        .nav-buttons {
+            display: flex;
             margin-right: 5px;
+        }
+
+        .nav-btn {
+            padding: 2px 8px;
+            background: var(--background-secondary);
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 4px;
+            color: var(--text-normal);
+            cursor: pointer;
+            font-size: 12px;
+
+            &:hover:not(:disabled) {
+                background: var(--background-secondary-alt);
+            }
+
+            &:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+            &:first-child {
+                border-top-right-radius: 0;
+                border-bottom-right-radius: 0;
+            }
+
+            &:last-child {
+                border-top-left-radius: 0;
+                border-bottom-left-radius: 0;
+                border-left: none;
+            }
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 4px 8px;
+            background: var(--background-primary);
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 4px;
+            color: var(--text-normal);
+            font-size: 12px;
+
+            &:focus {
+                outline: none;
+                border-color: var(--interactive-accent);
+            }
+        }
+
+        .search-btn {
+            margin-left: 5px;
+            padding: 4px 12px;
+            background: var(--interactive-accent);
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 4px;
+            color: var(--text-on-accent);
+            cursor: pointer;
+            font-size: 12px;
+
+            &:hover {
+                opacity: 0.9;
+            }
         }
     }
 
     .dict-area {
         flex: 1;
+        overflow: auto;
     }
 }
 

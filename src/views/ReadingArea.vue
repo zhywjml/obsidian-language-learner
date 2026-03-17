@@ -1,6 +1,6 @@
 <template>
     <div id="langr-reading" ref="reading" style="height: 100%">
-        <NConfigProvider :theme="theme" :theme-overrides="themeConfig"
+        <div class="reading-container"
             style="height: 100%; display: flex; flex-direction: column">
             <!-- 功能区 -->
             <div class="function-area">
@@ -73,17 +73,22 @@
                     :total="totalLines"
                 />
             </div>
-            <NDrawer v-model:show="activeNotes" :placement="'bottom'" :close-on-esc="true" :auto-focus="true"
-                :on-after-enter="afterNoteEnter" :on-after-leave="afterNoteLeave" to="#langr-reading"
-                :default-height="250" resizable>
-                <NDrawerContent title="Notes">
-                    <div class="note-area">
-                        <NInput class="note-input" v-model:value="notes" type="textarea" :autosize="{ minRows: 5 }" />
-                        <div class="note-rendered" @mouseover="onMouseOver" ref="renderedNote"></div>
+            <!-- 笔记抽屉 -->
+            <div class="drawer" v-if="activeNotes" @click.self="activeNotes = false">
+                <div class="drawer-content">
+                    <div class="drawer-header">
+                        <span class="drawer-title">Notes</span>
+                        <button class="drawer-close" @click="activeNotes = false">×</button>
                     </div>
-                </NDrawerContent>
-            </NDrawer>
-        </NConfigProvider>
+                    <div class="drawer-body">
+                        <div class="note-area">
+                            <textarea class="note-input" v-model="notes" :placeholder="t('Write notes...')"></textarea>
+                            <div class="note-rendered" @mouseover="onMouseOver" ref="renderedNote"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -98,14 +103,6 @@ import {
     onUnmounted,
     watchEffect,
 } from "vue";
-import {
-    NConfigProvider,
-    darkTheme,
-    NDrawer,
-    NDrawerContent,
-    NInput,
-    GlobalThemeOverrides,
-} from "naive-ui";
 import { MarkdownRenderer, Platform } from "obsidian";
 import PluginType from "@/plugin";
 import { t } from "@/lang/helper";
@@ -120,20 +117,7 @@ let view = vueThis.appContext.config.globalProperties.view as ReadingView;
 let plugin = view.plugin as PluginType;
 let contentEl = view.contentEl as HTMLElement;
 
-// 切换明亮/黑暗模式
-const theme = computed(() => {
-    return store.dark ? darkTheme : null;
-});
-
-const themeConfig: GlobalThemeOverrides = {
-    Drawer: {
-        bodyPadding: "8px 12px",
-        headerPadding: "4px 6px",
-        titleFontWeight: "700",
-    },
-};
-
-const localPrefix = require("electron").ipcRenderer.sendSync("file-url");
+let localPrefix = require("electron").ipcRenderer.sendSync("file-url");
 // app.vault.adapter.getResourcePath("");
 let frontMatter = plugin.app.metadataCache.getFileCache(view.file).frontmatter;
 let audioSource = (frontMatter["langr-audio"] || "") as string;
@@ -455,19 +439,94 @@ if (plugin.constants.platform === "mobile") {
         display: flex;
         height: 100%;
         width: 100%;
+        gap: 8px;
 
         .note-input {
             flex: 1;
+            resize: none;
+            padding: 8px;
+            background: var(--background-primary);
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 4px;
+            color: var(--text-normal);
+            font-family: inherit;
+            font-size: 13px;
+            line-height: 1.5;
+
+            &:focus {
+                outline: none;
+                border-color: var(--interactive-accent);
+            }
         }
 
         .note-rendered {
-            border: 1px solid gray;
-            border-radius: 3px;
             flex: 1;
-            padding: 5px;
-            margin-left: 2px;
+            padding: 8px;
+            background: var(--background-primary);
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 4px;
             overflow: auto;
+            color: var(--text-normal);
         }
+    }
+}
+
+// 抽屉样式
+.drawer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 250px;
+    background: var(--background-secondary);
+    border-top: 1px solid var(--background-modifier-border);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
+
+    .drawer-content {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .drawer-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--background-modifier-border);
+    }
+
+    .drawer-title {
+        font-weight: 700;
+        font-size: 14px;
+        color: var(--text-normal);
+    }
+
+    .drawer-close {
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+            color: var(--text-normal);
+        }
+    }
+
+    .drawer-body {
+        flex: 1;
+        padding: 12px;
+        overflow: auto;
     }
 }
 

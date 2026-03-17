@@ -156,5 +156,13 @@ export default {
     "As Server": "成為伺服器",
     "Self as Server": "開啟伺服器功能",
     "Make plugin a server and interact with chrome extension": "外掛開啟一個伺服器提供API，由此可以與Google瀏覽器外掛互動",
-    "when changing port, you should restart the server": "如果改變埠，請重啟伺服器"
-}
+    "when changing port, you should restart the server": "如果改變埠，請重啟伺服器",
+
+    // Tags
+    "Filter by tags": "按標籤篩選",
+    "Select multiple to filter": "多選進行篩選",
+    "Create new tag": "創建新標籤",
+    "Tag name": "標籤名稱",
+    "Add": "新增",
+    "selected": "已選",
+};

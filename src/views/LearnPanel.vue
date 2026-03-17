@@ -1,118 +1,153 @@
 <template>
-	<div id="langr-learn-panel">
-		<NConfigProvider :theme="theme" :theme-overrides="themeOverrides">
-			<!-- <NThemeEditor> -->
-			<NForm :model="model" label-placement="top" label-width="auto" :rules="rules"
-				require-mark-placement="right-hanging">
-				<!-- 一个单词或短语字符串 -->
-				<NFormItem :label="t('Expression')" :label-style="labelStyle" path="expression">
-					<NInput size="small" v-model:value="model.expression" :placeholder="t('A word or a phrase')" />
-				</NFormItem>
-				<!-- 单词或短语的含义(精简) -->
-				<NFormItem :label="t('Meaning')" :label-style="labelStyle" path="meaning">
-					<NInput size="small" v-model:value="model.meaning" :placeholder="t('A short definition')"
-						type="textarea" autosize />
-				</NFormItem>
-				<!-- 类别，可以是Word或Phrase -->
-				<NFormItem :label="t('Type')" :label-style="labelStyle" path="t">
-					<NRadioGroup v-model:value="model.t">
-						<NRadio value="WORD">{{ t("Word") }}</NRadio>
-						<NRadio value="PHRASE">{{ t("Phrase") }}</NRadio>
-					</NRadioGroup>
-				</NFormItem>
-				<!-- 当前单词的学习状态 -->
-				<NFormItem :label="t('Status')" :label-style="labelStyle" path="status">
-					<NRadioGroup v-model:value="model.status" size="small">
-						<NRadioButton v-for="(s, i) in status" :value="i">
-							{{ s.text }}
-						</NRadioButton>
-					</NRadioGroup>
-				</NFormItem>
-				<!-- 加一些tag, 可以用来搜索 -->
-				<NFormItem :label="t('Tags')" :label-style="labelStyle" path="tags">
-					<NSelect size="small" v-model:value="model.tags" filterable multiple tag
-						:placeholder="t('Input or select some tags')" :loading="tagLoading" :options="tagOptions"
-						@search="tagSearch"></NSelect>
-				</NFormItem>
-				<!-- 可选,可以记多条笔记 -->
-				<NFormItem :label="t('Notes')" :label-style="labelStyle" path="tags">
-					<NDynamicInput v-model:value="model.notes" :create-button-props="{ size: 'small' }">
-						<template #create-button-default>
-							{{ t("Create") }}
-						</template>
-						<template #="{ index, value }">
-							<NInput size="small" type="textarea" :placeholder="t('Write a new note')"
-								v-model:value="model.notes[index]" />
-						</template>
-					</NDynamicInput>
-				</NFormItem>
-				<!-- 可选,例句也可以记多条 -->
-				<div style="margin-bottom: 8px">
-					<label for="Sentences" :style="[labelStyle]">{{
-						t("Sentences")
-					}}</label>
-				</div>
-				<NDynamicInput v-model:value="model.sentences" :create-button-props="{ size: 'small' }"
-					:on-create="onCreateSentence">
-					<template #create-button-default>
-						{{ t("Create") }}
-					</template>
-					<template #="{ index, value }">
-						<div style="display: flex;
-                                flex-direction: column;
-                                flex: 1;
-                                border: 2px solid gray;
-                                border-radius: 3px;
-                                padding: 3px;
-                            ">
-							<NFormItem :show-label="false" :path="`sentences[${index}].text`" :rule="sourceRule">
-								<NInput size="small" type="textarea" v-model:value="model.sentences[index].text"
-									:placeholder="t('Origin sentence')" :autosize="{ minRows: 1, maxRows: 3 }" />
-							</NFormItem>
-							<NFormItem :show-feedback="false" :show-label="false" :path="`sentences[${index}].trans`">
-								<NInput size="small" type="textarea" v-model:value="model.sentences[index].trans"
-									:placeholder="t('Translation (Optional)')" :autosize="{ minRows: 1, maxRows: 3 }" />
-							</NFormItem>
-							<NFormItem :show-feedback="false" :show-label="false" :path="`sentences[${index}].origin`">
-								<NInput size="small" type="textarea" v-model:value="
-									model.sentences[index].origin
-								" :placeholder="t('Origin (Optional)')" :autosize="{ minRows: 1, maxRows: 3 }" />
-							</NFormItem>
-						</div>
-					</template>
-				</NDynamicInput>
-			</NForm>
-			<!-- 提交按钮 -->
-			<div style="margin-top: 10px">
-				<NButton size="small" style="--n-width: 100%" attr-type="submit" @click="submit"
-					:loading="submitLoading">
-					<NIconWrapper v-if="successing" :size="18" :border-radius="6" style="margin-right: 6px;">
-						<NIcon :size="16">
-							<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 16 16">
-								<g fill="none">
-									<path d="M14.046 3.486a.75.75 0 0 1-.032 1.06l-7.93 7.474a.85.85 0 0 1-1.188-.022l-2.68-2.72a.75.75 0 1 1 1.068-1.053l2.234 2.267l7.468-7.038a.75.75 0 0 1 1.06.032z" fill="currentColor">
-									</path>
-								</g>
-							</svg>
-						</NIcon>
-					</NIconWrapper>
-					<NIconWrapper v-if="failing" :size="18" :border-radius="6" style="margin-right: 6px;" color="#DE5959">
-						<NIcon :size="16">
-							<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 16 16">
-								<g fill="none">
-									<path d="M2.397 2.554l.073-.084a.75.75 0 0 1 .976-.073l.084.073L8 6.939l4.47-4.47a.75.75 0 1 1 1.06 1.061L9.061 8l4.47 4.47a.75.75 0 0 1 .072.976l-.073.084a.75.75 0 0 1-.976.073l-.084-.073L8 9.061l-4.47 4.47a.75.75 0 0 1-1.06-1.061L6.939 8l-4.47-4.47a.75.75 0 0 1-.072-.976l.073-.084l-.073.084z" fill="currentColor">
-									</path>
-								</g>
-							</svg>
-						</NIcon>
-					</NIconWrapper>
-					
-					{{ t("Submit") }}
-				</NButton>
-			</div>
-			<!-- </NThemeEditor> -->
-		</NConfigProvider>
-	</div>
+    <div id="langr-learn-panel">
+        <form class="learn-form" @submit.prevent="submit">
+            <!-- 一个单词或短语字符串 -->
+            <div class="form-group">
+                <label class="form-label">{{ t("Expression") }}</label>
+                <input
+                    type="text"
+                    class="form-input"
+                    v-model="model.expression"
+                    :placeholder="t('A word or a phrase')"
+                />
+            </div>
+            <!-- 单词或短语的含义(精简) -->
+            <div class="form-group">
+                <label class="form-label">{{ t("Meaning") }}</label>
+                <textarea
+                    class="form-textarea"
+                    v-model="model.meaning"
+                    :placeholder="t('A short definition')"
+                ></textarea>
+            </div>
+            <!-- 类别，可以是Word或Phrase -->
+            <div class="form-group">
+                <label class="form-label">{{ t("Type") }}</label>
+                <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" value="WORD" v-model="model.t" />
+                        {{ t("Word") }}
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" value="PHRASE" v-model="model.t" />
+                        {{ t("Phrase") }}
+                    </label>
+                </div>
+            </div>
+            <!-- 当前单词的学习状态 -->
+            <div class="form-group">
+                <label class="form-label">{{ t("Status") }}</label>
+                <div class="status-buttons">
+                    <label
+                        v-for="(s, i) in status"
+                        :key="i"
+                        class="status-btn"
+                        :class="{ active: model.status === i }"
+                        :style="s.style"
+                    >
+                        <input type="radio" :value="i" v-model="model.status" />
+                        {{ s.text }}
+                    </label>
+                </div>
+            </div>
+            <!-- 加一些tag, 可以用来搜索 -->
+            <div class="form-group">
+                <label class="form-label">{{ t("Tags") }}</label>
+                <div class="tags-dropdown" @mouseenter="showTagDropdown = true" @mouseleave="showTagDropdown = false">
+                    <div class="tags-trigger">
+                        <span v-if="model.tags.length === 0" class="placeholder">{{ t('Input or select some tags') }}</span>
+                        <span v-else class="selected-tags">
+                            <span v-for="tag in model.tags" :key="tag" class="selected-tag">
+                                {{ tag }}
+                                <span class="remove-tag" @click.stop="removeTag(tag)">×</span>
+                            </span>
+                        </span>
+                    </div>
+                    <div class="dropdown-menu" v-show="showTagDropdown">
+                        <div class="dropdown-section">
+                            <div
+                                v-for="tag in availableTags"
+                                :key="tag"
+                                class="dropdown-item checkbox-item"
+                                :class="{ checked: model.tags.includes(tag) }"
+                                @click="toggleTag(tag)"
+                            >
+                                <span class="checkbox">
+                                    <span v-if="model.tags.includes(tag)">✓</span>
+                                </span>
+                                <span class="tag-text">{{ tag }}</span>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-section">
+                            <div class="dropdown-item create-tag" @click="showCreateTag = true">
+                                <span class="plus-icon">+</span>
+                                <span>{{ t("Create new tag") }}</span>
+                            </div>
+                            <div v-if="showCreateTag" class="create-tag-form">
+                                <input
+                                    type="text"
+                                    v-model="newTagName"
+                                    :placeholder="t('Tag name')"
+                                    class="tag-input"
+                                    @keydown.enter="createTag"
+                                />
+                                <button type="button" class="create-btn" @click="createTag">{{ t("Add") }}</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 可选,可以记多条笔记 -->
+            <div class="form-group">
+                <label class="form-label">{{ t("Notes") }}</label>
+                <div class="dynamic-inputs">
+                    <div v-for="(note, index) in model.notes" :key="index" class="dynamic-item">
+                        <textarea
+                            class="form-textarea"
+                            v-model="model.notes[index]"
+                            :placeholder="t('Write a new note')"
+                        ></textarea>
+                        <button type="button" class="remove-btn" @click="removeNote(index)">×</button>
+                    </div>
+                    <button type="button" class="create-btn" @click="addNote">{{ t("Create") }}</button>
+                </div>
+            </div>
+            <!-- 可选,例句也可以记多条 -->
+            <div class="form-group">
+                <label class="form-label">{{ t("Sentences") }}</label>
+                <div class="dynamic-inputs">
+                    <div v-for="(sentence, index) in model.sentences" :key="index" class="sentence-item">
+                        <textarea
+                            class="form-textarea"
+                            v-model="model.sentences[index].text"
+                            :placeholder="t('Origin sentence')"
+                        ></textarea>
+                        <textarea
+                            class="form-textarea"
+                            v-model="model.sentences[index].trans"
+                            :placeholder="t('Translation (Optional)')"
+                        ></textarea>
+                        <textarea
+                            class="form-textarea"
+                            v-model="model.sentences[index].origin"
+                            :placeholder="t('Origin (Optional)')"
+                        ></textarea>
+                        <button type="button" class="remove-btn" @click="removeSentence(index)">×</button>
+                    </div>
+                    <button type="button" class="create-btn" @click="addSentence">{{ t("Create") }}</button>
+                </div>
+            </div>
+            <!-- 提交按钮 -->
+            <div class="form-actions">
+                <button type="submit" class="submit-btn" :class="{ success: successing, error: failing }" :disabled="submitLoading">
+                    <span v-if="successing" class="icon success-icon">✓</span>
+                    <span v-if="failing" class="icon error-icon">✕</span>
+                    {{ t("Submit") }}
+                </button>
+            </div>
+        </form>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -123,26 +158,7 @@ import {
 	onUnmounted,
 	getCurrentInstance,
 	computed,
-	CSSProperties,
 } from "vue";
-import {
-	NIcon,
-	NIconWrapper,
-	NForm,
-	NFormItem,
-	NInput,
-	NRadio,
-	NRadioButton,
-	NRadioGroup,
-	NButton,
-	NDynamicInput,
-	NSelect,
-	SelectOption,
-	NConfigProvider,
-	// NThemeEditor,
-	darkTheme,
-	GlobalThemeOverrides,
-} from "naive-ui";
 
 import { ExpressionInfo, Sentence } from "@/db/interface";
 import { t } from "@/lang/helper";
@@ -150,7 +166,7 @@ import { useEvent } from "@/utils/use";
 import { LearnPanelView } from "./LearnPanelView";
 import { ReadingView } from "./ReadingView";
 import Plugin from "@/plugin";
-import { search } from "@dict/youdao/engine";
+import { search } from "@/dictionary/youdao/engine";
 import store from "@/store";
 
 const view: LearnPanelView =
@@ -158,36 +174,7 @@ const view: LearnPanelView =
 const plugin: Plugin =
 	getCurrentInstance().appContext.config.globalProperties.plugin;
 
-// 切换明亮/黑暗模式
-const theme = computed(() => {
-	return store.dark ? darkTheme : null;
-});
-
-// 样式设置
-const themeOverrides: GlobalThemeOverrides = {
-	common: {},
-	Form: {
-		labelFontSizeTopMedium: "15px",
-		feedbackFontSizeMedium: "13px",
-		blankHeightMedium: "5px",
-		feedbackHeightMedium: "22px",
-	},
-	Radio: {
-		buttonBorderRadius: "5px",
-		fontSizeMedium: "13px",
-		fontSizeSmall: "13px",
-		buttonHeightSmall: "22px",
-	},
-	Input: {
-		fontSizeSmall: "12px",
-		paddingSmall: "0 5px",
-	},
-	DynamicInput: {
-		actionMargin: "0 0 0 5px",
-	},
-};
-
-//表单数据
+// 表单数据
 let model = ref<ExpressionInfo>({
 	expression: null,
 	meaning: null,
@@ -198,48 +185,6 @@ let model = ref<ExpressionInfo>({
 	sentences: [],
 });
 
-// 表单检查规则
-let rules = {
-	expression: {
-		required: true,
-		trigger: ["blur", "input"],
-		message: t("Please input a word/phrase"),
-	},
-	meaning: {
-		required: true,
-		trigger: ["blur", "input"],
-		message: t("A short definition is needed"),
-	},
-	t: {
-		required: true,
-		trigger: "change",
-		message: "Expression can be a word or phrase",
-	},
-	status: {
-		required: true,
-	},
-};
-
-let sourceRule = {
-	required: true,
-	trigger: ["blur", "input"],
-	message: "At least input a source sentence",
-};
-
-let labelStyle: CSSProperties = {
-	// fontSize: "16px",
-	fontWeight: "bold",
-	// padding: "0 0 8px 2px",
-};
-
-function onCreateSentence() {
-	return {
-		text: "",
-		trans: "",
-		origin: "",
-	};
-}
-
 // 单词状态样式
 const status = [
 	{ text: t("Ignore"), style: "" },
@@ -249,30 +194,75 @@ const status = [
 	{ text: t("Learned"), style: "background-Color: #4cb05155" },
 ];
 
+// 动态添加/删除笔记
+function addNote() {
+	model.value.notes.push("");
+}
 
-// 异步获取数据库中所有tag
-let tagOptions = ref<SelectOption[]>([]);
-let tagLoading = ref(false);
-let tags: string[] = [];
+function removeNote(index: number) {
+	model.value.notes.splice(index, 1);
+}
 
-async function tagSearch(query: string) {
-	tagLoading.value = true;
-	if (query.length < 2) {
-		tags = await plugin.db.getTags();
+// 动态添加/删除例句
+function onCreateSentence() {
+	return {
+		text: "",
+		trans: "",
+		origin: "",
+	};
+}
+
+function addSentence() {
+	model.value.sentences.push(onCreateSentence());
+}
+
+function removeSentence(index: number) {
+	model.value.sentences.splice(index, 1);
+}
+
+// 标签相关
+let availableTags = ref<string[]>([]);
+let showTagDropdown = ref(false);
+let showCreateTag = ref(false);
+let newTagName = ref("");
+
+// 加载所有可用标签
+async function loadTags() {
+	availableTags.value = await plugin.db.getTags();
+}
+
+// 初始化时加载标签
+onMounted(() => {
+	loadTags();
+});
+
+// 切换标签选中状态
+function toggleTag(tag: string) {
+	const index = model.value.tags.indexOf(tag);
+	if (index === -1) {
+		model.value.tags.push(tag);
+	} else {
+		model.value.tags.splice(index, 1);
 	}
-	tagLoading.value = false;
+}
 
-	if (!query.length) {
-		tagOptions.value = tags.map((v) => {
-			return { label: v, value: v };
-		});
-		return;
+// 移除已选标签
+function removeTag(tag: string) {
+	const index = model.value.tags.indexOf(tag);
+	if (index !== -1) {
+		model.value.tags.splice(index, 1);
 	}
-	tagOptions.value = tags
-		.filter((v) => ~v.indexOf(query))
-		.map((v) => {
-			return { label: v, value: v };
-		});
+}
+
+// 创建新标签
+function createTag() {
+	const name = newTagName.value.trim();
+	if (name && !availableTags.value.includes(name)) {
+		availableTags.value.push(name);
+		model.value.tags.push(name);
+	}
+	newTagName.value = "";
+	showCreateTag.value = false;
 }
 
 // 提交信息到数据库的加载状态
@@ -452,30 +442,367 @@ useEvent(window, "obsidian-langr-search", async (evt: CustomEvent) => {
 #langr-learn-panel {
 	padding-bottom: 18px;
 
-	.n-input {
-		margin: 1px 0;
+	.learn-form {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
 	}
 
-	.n-dynamic-input .n-button-group {
+	.form-group {
+		display: flex;
 		flex-direction: column;
+		gap: 4px;
+	}
 
-		button {
-			height: 26px;
-			width: 26px;
+	.form-label {
+		font-weight: bold;
+		font-size: 14px;
+		color: var(--text-normal);
+	}
 
-			&:nth-child(1) {
-				border-top-left-radius: 34px !important;
-				border-top-right-radius: 34px !important;
-				border-bottom-left-radius: 0 !important;
-				border-bottom-right-radius: 0 !important;
+	.form-input,
+	.form-textarea,
+	.form-select {
+		padding: 6px 8px;
+		background: var(--background-primary);
+		border: 1px solid var(--background-modifier-border);
+		border-radius: 4px;
+		color: var(--text-normal);
+		font-size: 12px;
+		font-family: inherit;
+
+		&:focus {
+			outline: none;
+			border-color: var(--interactive-accent);
+		}
+	}
+
+	.form-textarea {
+		resize: vertical;
+		min-height: 40px;
+	}
+
+	.form-select {
+		min-height: 60px;
+	}
+
+	.tag-input {
+		margin-top: 4px;
+	}
+
+	.tags-dropdown {
+		position: relative;
+
+		.tags-trigger {
+			min-height: 32px;
+			padding: 4px 8px;
+			background: var(--background-primary);
+			border: 1px solid var(--background-modifier-border);
+			border-radius: 4px;
+			cursor: pointer;
+
+			&:hover {
+				border-color: var(--interactive-accent);
 			}
 
-			&:nth-child(2) {
-				border-top-left-radius: 0 !important;
-				border-top-right-radius: 0 !important;
-				border-bottom-left-radius: 34px !important;
-				border-bottom-right-radius: 34px !important;
+			.placeholder {
+				color: var(--text-muted);
+				font-size: 12px;
 			}
+
+			.selected-tags {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 4px;
+			}
+
+			.selected-tag {
+				display: inline-flex;
+				align-items: center;
+				gap: 4px;
+				padding: 2px 6px;
+				background: var(--interactive-accent);
+				border-radius: 4px;
+				color: var(--text-on-accent);
+				font-size: 11px;
+
+				.remove-tag {
+					cursor: pointer;
+					font-size: 12px;
+					opacity: 0.7;
+
+					&:hover {
+						opacity: 1;
+					}
+				}
+			}
+		}
+
+		.dropdown-menu {
+			position: absolute;
+			top: 100%;
+			left: 0;
+			min-width: 200px;
+			max-height: 200px;
+			overflow-y: auto;
+			padding: 4px 0;
+			background: var(--background-primary);
+			border: 1px solid var(--background-modifier-border);
+			border-radius: 6px;
+			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+			z-index: 100;
+			margin-top: 2px;
+
+			.dropdown-divider {
+				height: 1px;
+				background: var(--background-modifier-border);
+				margin: 4px 0;
+			}
+
+			.dropdown-section {
+				max-height: 140px;
+				overflow-y: auto;
+			}
+
+			.dropdown-item {
+				padding: 6px 12px;
+				font-size: 12px;
+				color: var(--text-normal);
+				cursor: pointer;
+				display: flex;
+				align-items: center;
+				gap: 8px;
+
+				&:hover {
+					background: var(--background-secondary);
+				}
+
+				&.checkbox-item {
+					.checkbox {
+						width: 16px;
+						height: 16px;
+						border: 1px solid var(--background-modifier-border);
+						border-radius: 3px;
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						font-size: 10px;
+						color: var(--interactive-accent);
+						background: var(--background-primary);
+					}
+
+					&.checked .checkbox {
+						background: var(--interactive-accent);
+						border-color: var(--interactive-accent);
+						color: var(--text-on-accent);
+					}
+
+					.tag-text {
+						flex: 1;
+					}
+				}
+
+				&.create-tag {
+					color: var(--interactive-accent);
+
+					.plus-icon {
+						width: 16px;
+						height: 16px;
+						border: 1px dashed var(--interactive-accent);
+						border-radius: 3px;
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						font-size: 12px;
+						font-weight: bold;
+					}
+
+					&:hover {
+						background: var(--background-secondary);
+					}
+				}
+			}
+
+			.create-tag-form {
+				padding: 8px 12px;
+				display: flex;
+				gap: 8px;
+
+				.tag-input {
+					flex: 1;
+					padding: 4px 8px;
+					background: var(--background-secondary);
+					border: 1px solid var(--background-modifier-border);
+					border-radius: 4px;
+					color: var(--text-normal);
+					font-size: 11px;
+					margin-top: 0;
+
+					&:focus {
+						outline: none;
+						border-color: var(--interactive-accent);
+					}
+				}
+
+				.create-btn {
+					padding: 4px 10px;
+					background: var(--interactive-accent);
+					border: none;
+					border-radius: 4px;
+					color: var(--text-on-accent);
+					font-size: 11px;
+					cursor: pointer;
+
+					&:hover {
+						opacity: 0.9;
+					}
+				}
+			}
+		}
+	}
+
+	.radio-group {
+		display: flex;
+		gap: 12px;
+	}
+
+	.radio-label {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		font-size: 12px;
+		color: var(--text-normal);
+		cursor: pointer;
+	}
+
+	.status-buttons {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 4px;
+	}
+
+	.status-btn {
+		padding: 4px 8px;
+		background: var(--background-secondary);
+		border: 1px solid var(--background-modifier-border);
+		border-radius: 4px;
+		font-size: 11px;
+		color: var(--text-normal);
+		cursor: pointer;
+		transition: all 0.15s ease;
+
+		input {
+			display: none;
+		}
+
+		&.active {
+			border-color: var(--interactive-accent);
+			box-shadow: 0 0 0 1px var(--interactive-accent);
+		}
+
+		&:hover {
+			background: var(--background-secondary-alt);
+		}
+	}
+
+	.dynamic-inputs {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.dynamic-item,
+	.sentence-item {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		padding: 8px;
+		background: var(--background-secondary);
+		border: 1px solid var(--background-modifier-border);
+		border-radius: 4px;
+
+		.form-textarea {
+			width: 100%;
+		}
+	}
+
+	.remove-btn {
+		position: absolute;
+		top: 4px;
+		right: 4px;
+		width: 20px;
+		height: 20px;
+		padding: 0;
+		background: var(--background-modifier-border);
+		border: none;
+		border-radius: 50%;
+		color: var(--text-muted);
+		cursor: pointer;
+		font-size: 14px;
+		line-height: 1;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		&:hover {
+			background: #DE5959;
+			color: white;
+		}
+	}
+
+	.create-btn {
+		padding: 6px 12px;
+		background: var(--background-secondary);
+		border: 1px dashed var(--background-modifier-border);
+		border-radius: 4px;
+		color: var(--text-muted);
+		cursor: pointer;
+		font-size: 12px;
+
+		&:hover {
+			border-color: var(--interactive-accent);
+			color: var(--interactive-accent);
+		}
+	}
+
+	.form-actions {
+		margin-top: 8px;
+	}
+
+	.submit-btn {
+		width: 100%;
+		padding: 8px 16px;
+		background: var(--interactive-accent);
+		border: 1px solid var(--background-modifier-border);
+		border-radius: 4px;
+		color: var(--text-on-accent);
+		cursor: pointer;
+		font-size: 13px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 6px;
+
+		&:hover:not(:disabled) {
+			opacity: 0.9;
+		}
+
+		&:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+		}
+
+		&.success {
+			background: #4cb051;
+		}
+
+		&.error {
+			background: #DE5959;
+		}
+
+		.icon {
+			font-size: 14px;
 		}
 	}
 }

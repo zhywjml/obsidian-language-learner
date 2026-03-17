@@ -223,4 +223,12 @@ export default {
     "Default Dictionary": "默认词典",
     "Choose which dictionary to show by default when searching words": "查词时默认展示的词典",
     "Online Dictionary": "在线词典",
+
+    // Tags
+    "Filter by tags": "按标签筛选",
+    "Select multiple to filter": "多选进行筛选",
+    "Create new tag": "创建新标签",
+    "Tag name": "标签名称",
+    "Add": "添加",
+    "selected": "已选",
 };
