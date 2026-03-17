@@ -302,6 +302,7 @@ onUnmounted(() => {
             cursor: pointer;
             text-align: center;
             font-size: 12px;
+            min-width: 100px;
 
             &:hover {
                 border-color: var(--interactive-accent);
@@ -316,6 +317,9 @@ onUnmounted(() => {
                 top: 100%;
                 left: 0;
                 right: 0;
+                min-width: 180px;
+                max-height: 300px;
+                overflow-y: auto;
                 padding: 4px 0;
                 background: var(--background-primary);
                 border: 1px solid var(--background-modifier-border);
