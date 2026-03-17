@@ -63,7 +63,7 @@
                             </span>
                         </span>
                     </div>
-                    <div class="dropdown-menu" v-show="showTagDropdown">
+                    <div class="dropdown-menu" v-show="showTagDropdown" @mouseenter="showTagDropdown = true" @mouseleave="showTagDropdown = false">
                         <div class="dropdown-section">
                             <div
                                 v-for="tag in availableTags"

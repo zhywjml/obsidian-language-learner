@@ -12,7 +12,7 @@
                         <span v-if="selectedTags.length === 0">{{ t("All") }}</span>
                         <span v-else>{{ selectedTags.length }} {{ t("selected") }}</span>
                     </span>
-                    <div class="dropdown-menu" v-show="showDropdown">
+                    <div class="dropdown-menu" v-show="showDropdown" @mouseenter="showDropdown = true" @mouseleave="showDropdown = false">
                         <div class="dropdown-header">
                             <span class="dropdown-title">{{ t("Filter by tags") }}</span>
                             <span class="dropdown-hint">{{ t("Select multiple to filter") }}</span>

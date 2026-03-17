@@ -24,7 +24,7 @@
                 @mouseleave="showDropdown = false"
             >
                 <span class="dict-label">{{ currentDictName }}</span>
-                <div class="dropdown-menu" v-show="showDropdown">
+                <div class="dropdown-menu" v-show="showDropdown" @mouseenter="showDropdown = true" @mouseleave="showDropdown = false">
                     <div
                         v-for="dict in dictPaths"
                         :key="dict.path"
@@ -295,6 +295,7 @@ onUnmounted(() => {
 
         .dict-dropdown {
             position: relative;
+            min-height: 32px;
             padding: 4px 10px;
             border: 1px solid var(--background-modifier-border);
             border-radius: 4px;
@@ -302,7 +303,6 @@ onUnmounted(() => {
             cursor: pointer;
             text-align: center;
             font-size: 12px;
-            min-width: 100px;
 
             &:hover {
                 border-color: var(--interactive-accent);
@@ -316,9 +316,8 @@ onUnmounted(() => {
                 position: absolute;
                 top: 100%;
                 left: 0;
-                right: 0;
-                min-width: 180px;
-                max-height: 300px;
+                min-width: 200px;
+                max-height: 200px;
                 overflow-y: auto;
                 padding: 4px 0;
                 background: var(--background-primary);
@@ -333,7 +332,9 @@ onUnmounted(() => {
                     font-size: 12px;
                     color: var(--text-normal);
                     cursor: pointer;
-                    white-space: nowrap;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
 
                     &:hover {
                         background: var(--background-secondary);

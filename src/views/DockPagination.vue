@@ -38,7 +38,7 @@
             >
                 <span class="size-label">{{ currentLabel }}</span>
                 <!-- 菜单放在触发元素内部，这样鼠标可以移动到菜单上 -->
-                <div class="dropdown-menu" v-show="showDropdown">
+                <div class="dropdown-menu" v-show="showDropdown" @mouseenter="showDropdown = true" @mouseleave="showDropdown = false">
                     <div
                         v-for="ps in pageSizeOptions"
                         :key="ps.value"
@@ -227,9 +227,10 @@ const goToPage = (page: number) => {
 
         .size-dropdown {
             position: relative;
+            min-height: 32px;
             padding: 4px 12px;
             border: 1px solid var(--background-modifier-border);
-            border-radius: 6px;
+            border-radius: 4px;
             background: var(--background-primary);
             cursor: pointer;
 
@@ -247,20 +248,25 @@ const goToPage = (page: number) => {
                 bottom: 100%;
                 left: 50%;
                 transform: translateX(-50%);
+                min-width: 200px;
+                max-height: 200px;
+                overflow-y: auto;
                 padding: 4px 0;
                 background: var(--background-primary);
                 border: 1px solid var(--background-modifier-border);
                 border-radius: 6px;
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
                 z-index: 100;
-                min-width: 100px;
+                margin-bottom: 2px;
 
                 .dropdown-item {
                     padding: 6px 12px;
                     font-size: 12px;
                     color: var(--text-normal);
                     cursor: pointer;
-                    white-space: nowrap;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
 
                     &:hover {
                         background: var(--background-secondary);
