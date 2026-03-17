@@ -1518,6 +1518,192 @@
   font-style: italic;
   color: var(--text-normal);
 }
+#langr-anki-export[data-v-37bedff4] {
+  padding: 16px;
+  height: 100%;
+  overflow-y: auto;
+}
+.anki-header[data-v-37bedff4] {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.anki-header h3[data-v-37bedff4] {
+  margin: 0;
+}
+.refresh-btn[data-v-37bedff4] {
+  padding: 4px 12px;
+  cursor: pointer;
+}
+.anki-disabled[data-v-37bedff4] {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-muted);
+}
+.anki-disabled .hint[data-v-37bedff4] {
+  font-size: 12px;
+  margin-top: 8px;
+}
+.connection-status[data-v-37bedff4] {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  background: var(--background-secondary);
+}
+.connection-status.connected[data-v-37bedff4] {
+  color: var(--text-success);
+}
+.status-icon[data-v-37bedff4] {
+  font-weight: bold;
+}
+.retry-btn[data-v-37bedff4] {
+  margin-left: auto;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+.export-options[data-v-37bedff4] {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: var(--background-secondary);
+  border-radius: 4px;
+}
+.option-row[data-v-37bedff4] {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.option-row label[data-v-37bedff4] {
+  min-width: 60px;
+}
+.option-row select[data-v-37bedff4] {
+  flex: 1;
+  padding: 4px;
+}
+.word-list-container[data-v-37bedff4] {
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.word-list-header[data-v-37bedff4] {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--background-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+.word-count[data-v-37bedff4] {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.select-all[data-v-37bedff4] {
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.word-list[data-v-37bedff4] {
+  max-height: 400px;
+  overflow-y: auto;
+}
+.word-item[data-v-37bedff4] {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+.word-item[data-v-37bedff4]:last-child {
+  border-bottom: none;
+}
+.word-item.selected[data-v-37bedff4] {
+  background: var(--background-primary);
+}
+.word-checkbox[data-v-37bedff4] {
+  padding-top: 4px;
+}
+.word-info[data-v-37bedff4] {
+  flex: 1;
+  min-width: 0;
+}
+.word-expression[data-v-37bedff4] {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.word-meaning[data-v-37bedff4] {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.word-tags[data-v-37bedff4] {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+.tag[data-v-37bedff4] {
+  font-size: 10px;
+  padding: 1px 6px;
+  background: var(--background-secondary);
+  border-radius: 2px;
+}
+.pagination[data-v-37bedff4] {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  background: var(--background-secondary);
+  border-top: 1px solid var(--border-color);
+}
+.pagination button[data-v-37bedff4] {
+  padding: 4px 12px;
+  cursor: pointer;
+}
+.pagination button[data-v-37bedff4]:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+.export-action[data-v-37bedff4] {
+  margin-top: 16px;
+  text-align: center;
+}
+.export-btn[data-v-37bedff4] {
+  padding: 8px 24px;
+  cursor: pointer;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: 4px;
+}
+.export-btn[data-v-37bedff4]:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+.export-result[data-v-37bedff4] {
+  margin-top: 16px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  text-align: center;
+}
+.export-result.success[data-v-37bedff4] {
+  background: var(--background-success);
+  color: var(--text-success);
+}
+.export-result.error[data-v-37bedff4] {
+  background: var(--background-danger);
+  color: var(--text-danger);
+}
 #mdict-result {
   padding-bottom: 10px;
 }
@@ -1711,8 +1897,12 @@
 }
 #mdict-panel .dict-selector {
   margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 #mdict-panel .dict-selector .dict-dropdown {
+  flex: 1;
   position: relative;
   min-height: 32px;
   padding: 4px 10px;
@@ -1728,6 +1918,20 @@
 }
 #mdict-panel .dict-selector .dict-dropdown .dict-label {
   color: var(--text-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+#mdict-panel .dict-selector .dict-dropdown .dict-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex-shrink: 0;
+}
+#mdict-panel .dict-selector .dict-dropdown .dict-status-dot.loaded {
+  background: #4caf50;
 }
 #mdict-panel .dict-selector .dict-dropdown .dropdown-menu {
   position: absolute;
@@ -1764,6 +1968,32 @@
   color: var(--text-muted);
   cursor: not-allowed;
   opacity: .5;
+}
+#mdict-panel .dict-selector .dict-dropdown .dropdown-menu .dropdown-item .check-icon {
+  width: 14px;
+  text-align: center;
+  color: var(--interactive-accent);
+}
+#mdict-panel .dict-selector .dict-dropdown .dropdown-menu .dropdown-item .check-icon.empty {
+  color: transparent;
+}
+#mdict-panel .dict-selector .reload-btn {
+  padding: 6px 10px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  color: var(--text-normal);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+#mdict-panel .dict-selector .reload-btn:hover:not(:disabled) {
+  background: var(--background-secondary-alt);
+  border-color: var(--interactive-accent);
+}
+#mdict-panel .dict-selector .reload-btn:disabled {
+  opacity: .5;
+  cursor: not-allowed;
 }
 #mdict-panel .dict-status {
   display: flex;
@@ -1806,6 +2036,23 @@
 }
 #mdict-panel .no-dict-message p {
   margin: 5px 0;
+}
+#mdict-panel .no-dict-message .hint {
+  font-size: 11px;
+  opacity: .8;
+}
+#mdict-panel .no-dict-message .reload-btn-large {
+  margin-top: 15px;
+  padding: 8px 20px;
+  background: var(--interactive-accent);
+  border: none;
+  border-radius: 6px;
+  color: var(--text-on-accent);
+  cursor: pointer;
+  font-size: 13px;
+}
+#mdict-panel .no-dict-message .reload-btn-large:hover {
+  opacity: .9;
 }
 .is-mobile #mdict-panel button:not(.fold-mask) {
   width: auto;

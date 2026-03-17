@@ -28,6 +28,7 @@ import { READING_VIEW_TYPE, READING_ICON, ReadingView } from "./views/ReadingVie
 import { LearnPanelView, LEARN_ICON, LEARN_PANEL_VIEW } from "./views/LearnPanelView";
 import { StatView, STAT_ICON, STAT_VIEW_TYPE } from "./views/StatView";
 import { DataPanelView, DATA_ICON, DATA_PANEL_VIEW } from "./views/DataPanelView";
+import { AnkiExportView, ANKI_EXPORT_ICON, ANKI_EXPORT_VIEW } from "./views/AnkiExportView";
 import { MdictPanelView, MDICT_ICON, MDICT_PANEL_VIEW } from "./dictionary/mdict/MdictPanelView";
 // import { PDFView, PDF_FILE_EXTENSION, VIEW_TYPE_PDF } from "./views/PDFView";
 
@@ -149,6 +150,7 @@ export default class LanguageLearner extends Plugin {
         this.app.workspace.detachLeavesOfType(STAT_VIEW_TYPE);
         this.app.workspace.detachLeavesOfType(READING_VIEW_TYPE);
         this.app.workspace.detachLeavesOfType(MDICT_PANEL_VIEW);
+        this.app.workspace.detachLeavesOfType(ANKI_EXPORT_VIEW);
 
         this.db.close();
         this.server?.close();
@@ -297,6 +299,17 @@ export default class LanguageLearner extends Plugin {
                 },
             });
         }
+
+        // 注册打开 Anki 导出面板命令（仅桌面端）
+        if (Platform.isDesktopApp) {
+            this.addCommand({
+                id: "langr-open-anki-export",
+                name: t("Open Anki Export"),
+                callback: () => {
+                    this.activateView(ANKI_EXPORT_VIEW, "right");
+                },
+            });
+        }
     }
 
     registerCustomViews() {
@@ -352,6 +365,17 @@ export default class LanguageLearner extends Plugin {
             );
             this.addRibbonIcon(MDICT_ICON, t("Offline Dictionary"), (evt) => {
                 this.activateView(MDICT_PANEL_VIEW, "left");
+            });
+        }
+
+        // 注册 Anki 导出面板（仅桌面端）
+        if (Platform.isDesktopApp) {
+            this.registerView(
+                ANKI_EXPORT_VIEW,
+                (leaf) => new AnkiExportView(leaf, this)
+            );
+            this.addRibbonIcon(ANKI_EXPORT_ICON, t("Anki Export"), (evt) => {
+                this.activateView(ANKI_EXPORT_VIEW, "right");
             });
         }
     }

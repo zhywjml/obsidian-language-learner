@@ -4,6 +4,9 @@
 
 ### 2026-03-17
 
+- 添加 AnkiConnect 集成功能，支持将单词导出到 Anki
+- 支持动态获取 Anki 模板字段名，兼容各种 Anki 笔记模板
+- 修复 AnkiConnect API 请求格式问题
 - 修复离线词典面板显示"未加载"但实际可用的状态显示问题
 - 优化离线词典加载状态显示，添加绿色状态指示点
 - 将UI统一为Obsidian原生风格，移除naive-ui组件库
@@ -51,6 +54,7 @@
 - **生词管理**：数据保存在 Obsidian 中，每个单词/短语支持多条笔记、多条例句
 - **阅读模式**：将每个单词变成可点击按钮，边读边查边记笔记
 - **统计图表**：显示学习进度和单词统计
+- **Anki 导出**：支持将单词导出到 Anki，配合 AnkiConnect 实现闪卡复习
 
 #### 数据存储
 
@@ -84,7 +88,6 @@
 - 可同时加载多个词典
 - 智能模糊匹配和单词建议
 - 可设置默认词典（在线/离线）
-- 支持桌面端和移动端（Android/iOS）
 
 > ⚠️ **重要提示**：如果将词典文件复制到库目录后无法看到 .mdx 文件，或在插件选择器中找不到词典，请按以下步骤开启文件类型检测：
 >
@@ -93,6 +96,29 @@
 > 3. 开启「检测所有文件类型」选项
 >
 > 详细说明参考：[Obsidian 论坛讨论](https://forum-zh.obsidian.md/t/topic/35297)
+
+#### Anki 导出功能
+
+支持将学习单词导出到 Anki 进行间隔复习：
+
+1. **前提条件**：安装 [AnkiConnect](https://ankiweb.net/shared/info/2055492159) 插件（Anki 插件代码：2055492159）
+2. **配置连接**：在插件设置中启用 AnkiConnect，配置主机地址和端口（默认 127.0.0.1:8765）
+3. **测试连接**：点击"测试连接"按钮确保 AnkiConnect 正常工作
+4. **导出单词**：
+   - 打开 Anki 导出面板（侧边栏小飞机图标）
+   - 选择目标牌组和笔记模板
+   - 按学习状态筛选单词
+   - 勾选要导出的单词，点击导出
+
+> 💡 **提示**：支持动态获取模板字段名，自动适配各种 Anki 笔记模板（如 Basic、Cloze、自定义模板等）
+
+
+
+<p align="center">
+  <img src="Snipaste_2026-03-17_18-33-08.png" alt="AnkiConnect支持" width="600">
+</p>
+
+
 
 ### 界面展示
 
@@ -168,6 +194,7 @@ Learn languages with Obsidian!
 - **Vocabulary Management**: Store words in Obsidian, each word/phrase supports multiple notes and sentences
 - **Reading Mode**: Convert each word into a clickable button for easy lookup while reading
 - **Statistics**: Display learning progress and word counts
+- **Anki Export**: Export words to Anki for spaced repetition via AnkiConnect
 
 #### Data Storage
 
@@ -200,7 +227,6 @@ Play local audio files while reading:
 - Load multiple dictionaries simultaneously
 - Smart fuzzy matching and word suggestions
 - Configurable default dictionary (online/offline)
-- Supports desktop and mobile (Android/iOS)
 
 > ⚠️ **Important**: If you cannot see .mdx files after copying them to your vault, or cannot find dictionaries in the plugin selector, please enable file type detection:
 >
@@ -209,6 +235,21 @@ Play local audio files while reading:
 > 3. Enable "Detect all file extensions" option
 >
 > See [Obsidian Forum](https://forum-zh.obsidian.md/t/topic/35297) for details.
+
+#### Anki Export Feature
+
+Export learned words to Anki for spaced repetition:
+
+1. **Prerequisites**: Install [AnkiConnect](https://ankiweb.net/shared/info/2055492159) addon (Addon code: 2055492159)
+2. **Configure Connection**: Enable AnkiConnect in plugin settings, configure host and port (default: 127.0.0.1:8765)
+3. **Test Connection**: Click "Test Connection" button to ensure AnkiConnect is working
+4. **Export Words**:
+   - Open Anki Export panel (airplane icon in sidebar)
+   - Select target deck and note model
+   - Filter words by learning status
+   - Select words to export and click Export
+
+> 💡 **Tip**: Dynamic field name detection automatically adapts to various Anki note models (Basic, Cloze, custom models, etc.)
 
 ### Screenshots
 

@@ -70,6 +70,13 @@ export interface MyPluginSettings {
     mdict_paths: { path: string; enabled: boolean }[];
     // default dictionary for word search
     default_dict: "online" | "offline";
+    // anki
+    anki_enabled: boolean;
+    anki_deck: string;
+    anki_model: string;
+    anki_host: string;
+    anki_port: number;
+    anki_api_key: string;
 }
 
 export const DEFAULT_SETTINGS: MyPluginSettings = {
@@ -121,6 +128,13 @@ export const DEFAULT_SETTINGS: MyPluginSettings = {
     mdict_paths: [],
     // default dictionary
     default_dict: "online",
+    // anki
+    anki_enabled: false,
+    anki_deck: "Language Learner",
+    anki_model: "Basic",
+    anki_host: "127.0.0.1",
+    anki_port: 8765,
+    anki_api_key: "",
 };
 
 export class SettingTab extends PluginSettingTab {
@@ -147,6 +161,7 @@ export class SettingTab extends PluginSettingTab {
         this.completionSettings(containerEl);
         this.reviewSettings(containerEl);
         this.selfServerSettings(containerEl);
+        this.ankiSettings(containerEl);
     }
 
     storageSettings(containerEl: HTMLElement) {
@@ -916,6 +931,109 @@ export class SettingTab extends PluginSettingTab {
                     }, 1000, true))
             );
 
+    }
+
+    async ankiSettings(containerEl: HTMLElement) {
+        containerEl.createEl("h3", { text: t("AnkiConnect") });
+
+        new Setting(containerEl)
+            .setName(t("Enable AnkiConnect"))
+            .setDesc(t("Enable Anki integration"))
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.anki_enabled)
+                .onChange(async (value) => {
+                    this.plugin.settings.anki_enabled = value;
+                    await this.plugin.saveSettings();
+                    this.display();
+                })
+            );
+
+        if (!this.plugin.settings.anki_enabled) {
+            return;
+        }
+
+        new Setting(containerEl)
+            .setName(t("Anki Host"))
+            .setDesc(t("AnkiConnect server host"))
+            .addText(text => text
+                .setValue(this.plugin.settings.anki_host)
+                .onChange(debounce(async (value) => {
+                    this.plugin.settings.anki_host = value;
+                    await this.plugin.saveSettings();
+                }, 500))
+            );
+
+        new Setting(containerEl)
+            .setName(t("Anki Port"))
+            .setDesc(t("AnkiConnect server port (default 8765)"))
+            .addText(text => text
+                .setValue(String(this.plugin.settings.anki_port))
+                .onChange(debounce(async (value) => {
+                    const port = Number(value);
+                    if (!isNaN(port)) {
+                        this.plugin.settings.anki_port = port;
+                        await this.plugin.saveSettings();
+                    }
+                }, 500))
+            );
+
+        new Setting(containerEl)
+            .setName(t("API Key"))
+            .setDesc(t("AnkiConnect API key (optional)"))
+            .addText(text => text
+                .setValue(this.plugin.settings.anki_api_key)
+                .onChange(debounce(async (value) => {
+                    this.plugin.settings.anki_api_key = value;
+                    await this.plugin.saveSettings();
+                }, 500))
+            );
+
+        new Setting(containerEl)
+            .setName(t("Default Deck"))
+            .setDesc(t("Default Anki deck for new cards"))
+            .addText(text => text
+                .setValue(this.plugin.settings.anki_deck)
+                .onChange(debounce(async (value) => {
+                    this.plugin.settings.anki_deck = value;
+                    await this.plugin.saveSettings();
+                }, 500))
+            );
+
+        new Setting(containerEl)
+            .setName(t("Note Model"))
+            .setDesc(t("Anki note model (e.g., Basic, Cloze)"))
+            .addText(text => text
+                .setValue(this.plugin.settings.anki_model)
+                .onChange(debounce(async (value) => {
+                    this.plugin.settings.anki_model = value;
+                    await this.plugin.saveSettings();
+                }, 500))
+            );
+
+        // Test connection button
+        new Setting(containerEl)
+            .setName(t("Test Connection"))
+            .addButton(button => button
+                .setButtonText(t("Test"))
+                .onClick(async () => {
+                    const { AnkiConnect } = await import("./anki/anki");
+                    const anki = new AnkiConnect(
+                        this.plugin.settings.anki_host,
+                        this.plugin.settings.anki_port,
+                        this.plugin.settings.anki_api_key
+                    );
+                    try {
+                        const result = await anki.connect();
+                        if (result) {
+                            new Notice(t("AnkiConnect connected successfully"));
+                        } else {
+                            new Notice(t("AnkiConnect connection failed"));
+                        }
+                    } catch (e) {
+                        new Notice(t("AnkiConnect error: ") + (e as Error).message);
+                    }
+                })
+            );
     }
 
     /**
