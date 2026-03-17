@@ -39,7 +39,6 @@ import { LocalDb } from "./db/local_db";
 import { MarkdownDb } from "./db/markdown_db";
 import { TextParser } from "./views/parser";
 import { FrontMatterManager } from "./utils/frontmatter";
-import Server from "./api/server";
 import { MdictEngine, createMdictEngine } from "./dictionary/mdict/engine";
 
 import { DEFAULT_SETTINGS, MyPluginSettings, SettingTab, StorageType } from "./settings";
@@ -68,8 +67,6 @@ export default class LanguageLearner extends Plugin {
     vueApp: VueApp;
     // 数据库实例（本地 IndexedDB 或远程服务器）
     db: DbProvider;
-    // 内置 HTTP 服务器（用于与浏览器扩展交互）
-    server: Server;
     // 文本解析器（英文分词、短语识别）
     parser: TextParser;
     // Markdown 视图按钮缓存
@@ -105,12 +102,6 @@ export default class LanguageLearner extends Plugin {
                 this.mdictEngine.loadDictionary(firstEnabled.path);
             }
         }
-
-        // 打开内置服务器
-        this.server = this.settings.self_server
-            ? new Server(this, this.settings.self_port)
-            : null;
-        await this.server?.start();
 
         // test
         // this.addCommand({
@@ -153,7 +144,6 @@ export default class LanguageLearner extends Plugin {
         this.app.workspace.detachLeavesOfType(ANKI_EXPORT_VIEW);
 
         this.db.close();
-        this.server?.close();
         this.mdictEngine?.close();
 
         this.vueApp.unmount();

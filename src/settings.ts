@@ -17,7 +17,6 @@ import { App, Notice, PluginSettingTab, Setting, Modal, moment, debounce } from 
 import { WebDb } from "./db/web_db";
 import { LocalDb } from "./db/local_db";
 import { MarkdownDb } from "./db/markdown_db";
-import Server from "./api/server";
 import LanguageLearner from "./plugin";
 import { t } from "./lang/helper";
 import { WarningModal, OpenFileModal, MarkdownFileSuggestModal, MdictFileSuggestModal } from "./modals"
@@ -37,8 +36,6 @@ export interface MyPluginSettings {
     port: number;
     use_https: boolean;
     api_key: string,
-    self_server: boolean;
-    self_port: number;
     // lang
     native: string;
     foreign: string;
@@ -89,8 +86,6 @@ export const DEFAULT_SETTINGS: MyPluginSettings = {
     host: "127.0.0.1",
     use_https: false,
     api_key: "",
-    self_server: false,
-    self_port: 3002,
     // lang
     native: "zh",
     foreign: "en",
@@ -160,7 +155,6 @@ export class SettingTab extends PluginSettingTab {
         this.readingSettings(containerEl);
         this.completionSettings(containerEl);
         this.reviewSettings(containerEl);
-        this.selfServerSettings(containerEl);
         this.ankiSettings(containerEl);
     }
 
@@ -888,49 +882,6 @@ export class SettingTab extends PluginSettingTab {
                 })
             );
         });
-    }
-
-    selfServerSettings(containerEl: HTMLElement) {
-        containerEl.createEl("h3", { text: t("As Server") });
-
-        new Setting(containerEl)
-            .setName(t("Self as Server"))
-            .setDesc(t("Make plugin a server and interact with chrome extension"))
-            .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.self_server)
-                .onChange(async (self_server) => {
-                    this.plugin.settings.self_server = self_server;
-                    if (self_server) {
-                        this.plugin.server = new Server(this.plugin, this.plugin.settings.self_port);
-                        await this.plugin.server.start();
-                    } else {
-                        await this.plugin.server?.close();
-                        this.plugin.server = null;
-                    }
-                    await this.plugin.saveSettings();
-                    this.display();
-                })
-            );
-
-        new Setting(containerEl)
-            .setName(t("Server Port"))
-            .setDesc(
-                t("when changing port, you should restart the server")
-            )
-            .addText((text) =>
-                text
-                    .setValue(String(this.plugin.settings.self_port))
-                    .onChange(debounce(async (port) => {
-                        let p = Number(port);
-                        if (!isNaN(p) && p >= 1023 && p <= 65535) {
-                            this.plugin.settings.self_port = p;
-                            await this.plugin.saveSettings();
-                        } else {
-                            new Notice(t("Wrong port format"));
-                        }
-                    }, 1000, true))
-            );
-
     }
 
     async ankiSettings(containerEl: HTMLElement) {
