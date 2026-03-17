@@ -4,6 +4,8 @@
 
 ### 2026-03-17
 
+- 修复离线词典面板显示"未加载"但实际可用的状态显示问题
+- 优化离线词典加载状态显示，添加绿色状态指示点
 - 将UI统一为Obsidian原生风格，移除naive-ui组件库
 - 统一下拉框样式，修复鼠标悬浮消失问题
 - 为标签相关UI添加国际化支持
@@ -82,7 +84,7 @@
 - 可同时加载多个词典
 - 智能模糊匹配和单词建议
 - 可设置默认词典（在线/离线）
-- 目前仅支持桌面端
+- 支持桌面端和移动端（Android/iOS）
 
 > ⚠️ **重要提示**：如果将词典文件复制到库目录后无法看到 .mdx 文件，或在插件选择器中找不到词典，请按以下步骤开启文件类型检测：
 >
@@ -198,7 +200,7 @@ Play local audio files while reading:
 - Load multiple dictionaries simultaneously
 - Smart fuzzy matching and word suggestions
 - Configurable default dictionary (online/offline)
-- Currently desktop only
+- Supports desktop and mobile (Android/iOS)
 
 > ⚠️ **Important**: If you cannot see .mdx files after copying them to your vault, or cannot find dictionaries in the plugin selector, please enable file type detection:
 >

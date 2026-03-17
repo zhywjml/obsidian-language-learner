@@ -5,7 +5,7 @@
  */
 
 import { MDX, Mdict, KeyWordItem } from "js-mdict";
-import { Notice, TFile, Platform } from "obsidian";
+import { Notice, TFile, Platform, Vault } from "obsidian";
 import { MdictSearchResult, MdictSuggestion, MdictInfo, MdictConfig } from "./types";
 
 /**
@@ -16,9 +16,11 @@ export class MdictEngine {
     private mdx: MDX | null = null;
     private basePath: string;
     private currentPath: string | null = null;
+    private vault: Vault | null = null;
 
-    constructor(basePath: string) {
+    constructor(basePath: string, vault?: Vault) {
         this.basePath = basePath;
+        this.vault = vault || null;
     }
 
     /**
@@ -34,18 +36,12 @@ export class MdictEngine {
             // 注意：在 Windows 上路径格式需要处理
             const fullPath = this.getFullPath(relativePath);
 
-            // 检查是否在桌面端
-            if (!Platform.isDesktopApp) {
-                new Notice("MDict 词典仅支持桌面端");
+            // 尝试加载词典
+            this.mdx = await this.createMdxFromPath(relativePath, fullPath);
+
+            if (!this.mdx) {
                 return false;
             }
-
-            // 创建 MDX 实例
-            this.mdx = new MDX(fullPath, {
-                resort: true,        // 启用重排序以处理排序问题
-                isStripKey: true,    // 去除词条中的特殊字符
-                isCaseSensitive: false, // 不区分大小写
-            });
 
             this.currentPath = relativePath;
             return true;
@@ -56,6 +52,54 @@ export class MdictEngine {
             this.currentPath = null;
             return false;
         }
+    }
+
+    /**
+     * 根据路径创建 MDX 实例
+     * 优先尝试通过 vault 读取（支持移动端），失败则回退到文件系统
+     */
+    private async createMdxFromPath(relativePath: string, fullPath: string): Promise<MDX | null> {
+        // 方案1：尝试通过 Obsidian Vault 读取文件（支持移动端）
+        if (this.vault) {
+            try {
+                // 标准化路径获取文件
+                const normalizedPath = relativePath.replace(/\\/g, "/").replace(/^\//, "");
+                const file = this.vault.getAbstractFileByPath(normalizedPath);
+
+                if (file && file instanceof TFile) {
+                    // 读取文件为二进制
+                    const arrayBuffer = await this.vault.readBinary(file);
+                    console.log("Loading MDict via Vault binary, size:", arrayBuffer.byteLength);
+
+                    // 使用 ArrayBuffer 创建 MDX（js-mdict 支持 ArrayBuffer）
+                    return new MDX(arrayBuffer as any, {
+                        resort: true,
+                        isStripKey: true,
+                        isCaseSensitive: false,
+                    });
+                }
+            } catch (vaultError) {
+                console.log("Vault read failed, trying file system:", vaultError);
+            }
+        }
+
+        // 方案2：桌面端使用文件系统直接读取
+        if (Platform.isDesktopApp) {
+            try {
+                return new MDX(fullPath, {
+                    resort: true,
+                    isStripKey: true,
+                    isCaseSensitive: false,
+                });
+            } catch (fsError) {
+                console.error("File system load failed:", fsError);
+                throw new Error("无法加载词典文件");
+            }
+        }
+
+        // 移动端且 vault 读取失败
+        new Notice("无法在移动端读取词典文件");
+        return null;
     }
 
     /**
@@ -209,6 +253,6 @@ export class MdictEngine {
 /**
  * 创建 MDict 引擎实例
  */
-export function createMdictEngine(basePath: string): MdictEngine {
-    return new MdictEngine(basePath);
+export function createMdictEngine(basePath: string, vault?: Vault): MdictEngine {
+    return new MdictEngine(basePath, vault);
 }

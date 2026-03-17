@@ -94,16 +94,14 @@ export default class LanguageLearner extends Plugin {
         this.parser = new TextParser(this);
         this.frontManager = new FrontMatterManager(this.app);
 
-        // 初始化 MDict 引擎（仅桌面端）
-        if (Platform.isDesktopApp) {
-            this.mdictEngine = createMdictEngine(this.constants.basePath);
-            // 自动加载第一个已启用的词典
-            const mdictPaths = this.settings.mdict_paths;
-            if (mdictPaths && mdictPaths.length > 0) {
-                const firstEnabled = mdictPaths.find((d: any) => d.enabled);
-                if (firstEnabled) {
-                    this.mdictEngine.loadDictionary(firstEnabled.path);
-                }
+        // 初始化 MDict 引擎（支持桌面端和移动端）
+        this.mdictEngine = createMdictEngine(this.constants.basePath, this.app.vault);
+        // 自动加载第一个已启用的词典
+        const mdictPaths = this.settings.mdict_paths;
+        if (mdictPaths && mdictPaths.length > 0) {
+            const firstEnabled = mdictPaths.find((d: any) => d.enabled);
+            if (firstEnabled) {
+                this.mdictEngine.loadDictionary(firstEnabled.path);
             }
         }
 
@@ -713,11 +711,6 @@ export default class LanguageLearner extends Plugin {
             }
         }
         (this.settings as any) = settings;
-        // this.settings = Object.assign(
-        //     {},
-        //     DEFAULT_SETTINGS,
-        //     await this.loadData()
-        // );
     }
 
     async saveSettings() {

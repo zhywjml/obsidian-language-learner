@@ -23,7 +23,11 @@
                 @mouseenter="showDropdown = true"
                 @mouseleave="showDropdown = false"
             >
-                <span class="dict-label">{{ currentDictName }}</span>
+                <span class="dict-label">
+                    <span v-if="dictLoaded" class="dict-status-dot loaded"></span>
+                    <span v-else class="dict-status-dot"></span>
+                    {{ currentDictName }}
+                </span>
                 <div class="dropdown-menu" v-show="showDropdown" @mouseenter="showDropdown = true" @mouseleave="showDropdown = false">
                     <div
                         v-for="dict in dictPaths"
@@ -31,9 +35,16 @@
                         class="dropdown-item"
                         :class="{ active: selectedDict === dict.path, disabled: !dict.enabled }"
                         @click="dict.enabled && switchDictionary(dict.path)"
-                    >{{ getDictName(dict.path) }}</div>
+                    >
+                        <span v-if="selectedDict === dict.path" class="check-icon">✓</span>
+                        <span v-else class="check-icon empty"></span>
+                        {{ getDictName(dict.path) }}
+                    </div>
                 </div>
             </div>
+            <button class="reload-btn" @click="reloadDict" :disabled="!selectedDict" :title="t('Reload dictionary')">
+                ⟳
+            </button>
         </div>
         <div class="dict-status" v-else>
             <span class="no-dict">{{ t("No dictionary loaded") }}</span>
@@ -42,7 +53,7 @@
 
         <!-- 结果区域 -->
         <div class="result-area" style="overflow:auto;">
-            <template v-if="engine?.isLoaded()">
+            <template v-if="dictLoaded">
                 <div class="mdict-result-container">
                     <MdictView
                         :word="currentWord"
@@ -51,8 +62,17 @@
                 </div>
             </template>
             <div v-else class="no-dict-message">
-                <p>{{ t("No dictionary loaded") }}</p>
-                <p>{{ t("Please add MDX dictionary in settings") }}</p>
+                <template v-if="dictPaths.length > 0 && selectedDict">
+                    <p>{{ t("Dictionary not loaded") }}</p>
+                    <p class="hint">{{ t("Click reload button to load") }}</p>
+                    <button class="reload-btn-large" @click="reloadDict">
+                        {{ t("Load Dictionary") }}
+                    </button>
+                </template>
+                <template v-else>
+                    <p>{{ t("No dictionary loaded") }}</p>
+                    <p>{{ t("Please add MDX dictionary in settings") }}</p>
+                </template>
             </div>
         </div>
     </div>
@@ -76,6 +96,8 @@ const searchWord = ref("");
 const currentWord = ref("");
 const selectedDict = ref("");
 const showDropdown = ref(false);
+const dictLoaded = ref(false); // 响应式加载状态
+const loading = ref(false);
 
 // 获取配置的词典路径列表
 const dictPaths = computed(() => {
@@ -93,6 +115,12 @@ const currentDictName = computed(() => {
     if (!selectedDict.value) return t("Select dictionary");
     return getDictName(selectedDict.value);
 });
+
+// 更新加载状态
+function updateLoadedState() {
+    dictLoaded.value = engine.value?.isLoaded() ?? false;
+    console.log("[MDict] Loaded state:", dictLoaded.value);
+}
 
 // 历史记录
 let history: string[] = [];
@@ -139,12 +167,33 @@ function handleSelectWord(word: string) {
     appendHistory();
 }
 
+// 重新加载词典
+async function reloadDict() {
+    if (!selectedDict.value || loading.value) return;
+    loading.value = true;
+    const success = await engine.value?.loadDictionary(selectedDict.value);
+    loading.value = false;
+
+    updateLoadedState();
+
+    if (success) {
+        new Notice(t("Dictionary loaded"));
+    } else {
+        new Notice(t("Failed to load dictionary"));
+    }
+}
+
 // 切换词典
 async function switchDictionary(path: string) {
     if (!path || path === selectedDict.value) return;
 
     selectedDict.value = path;
+    loading.value = true;
     const success = await engine.value?.loadDictionary(path);
+    loading.value = false;
+
+    updateLoadedState();
+
     if (success) {
         new Notice(t("Dictionary loaded"));
         if (currentWord.value) {
@@ -154,6 +203,8 @@ async function switchDictionary(path: string) {
                 currentWord.value = temp;
             }, 0);
         }
+    } else {
+        new Notice(t("Failed to load dictionary"));
     }
     showDropdown.value = false;
 }
@@ -185,7 +236,10 @@ watch(() => plugin.settings.mdict_paths, async (newPaths) => {
         const firstEnabled = newPaths.find((d: any) => d.enabled);
         if (firstEnabled && firstEnabled.path !== selectedDict.value) {
             selectedDict.value = firstEnabled.path;
+            loading.value = true;
             await engine.value?.loadDictionary(firstEnabled.path);
+            loading.value = false;
+            updateLoadedState();
         }
     }
 }, { deep: true });
@@ -197,8 +251,14 @@ onMounted(async () => {
         const firstDict = paths.find(d => d.enabled);
         if (firstDict) {
             selectedDict.value = firstDict.path;
+            loading.value = true;
             await engine.value?.loadDictionary(firstDict.path);
+            loading.value = false;
+            updateLoadedState();
         }
+    } else {
+        // 没有配置词典时，也检查引擎是否已加载（从plugin.ts）
+        updateLoadedState();
     }
 
     // 监听搜索事件
@@ -292,8 +352,12 @@ onUnmounted(() => {
 
     .dict-selector {
         margin-bottom: 5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
 
         .dict-dropdown {
+            flex: 1;
             position: relative;
             min-height: 32px;
             padding: 4px 10px;
@@ -310,6 +374,22 @@ onUnmounted(() => {
 
             .dict-label {
                 color: var(--text-normal);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+            }
+
+            .dict-status-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: var(--text-muted);
+                flex-shrink: 0;
+
+                &.loaded {
+                    background: #4caf50;
+                }
             }
 
             .dropdown-menu {
@@ -350,7 +430,38 @@ onUnmounted(() => {
                         cursor: not-allowed;
                         opacity: 0.5;
                     }
+
+                    .check-icon {
+                        width: 14px;
+                        text-align: center;
+                        color: var(--interactive-accent);
+
+                        &.empty {
+                            color: transparent;
+                        }
+                    }
                 }
+            }
+        }
+
+        .reload-btn {
+            padding: 6px 10px;
+            background: var(--background-secondary);
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 4px;
+            color: var(--text-normal);
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+
+            &:hover:not(:disabled) {
+                background: var(--background-secondary-alt);
+                border-color: var(--interactive-accent);
+            }
+
+            &:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
             }
         }
     }
@@ -402,6 +513,26 @@ onUnmounted(() => {
 
         p {
             margin: 5px 0;
+        }
+
+        .hint {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        .reload-btn-large {
+            margin-top: 15px;
+            padding: 8px 20px;
+            background: var(--interactive-accent);
+            border: none;
+            border-radius: 6px;
+            color: var(--text-on-accent);
+            cursor: pointer;
+            font-size: 13px;
+
+            &:hover {
+                opacity: 0.9;
+            }
         }
     }
 }

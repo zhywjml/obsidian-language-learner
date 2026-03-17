@@ -117,7 +117,11 @@ let view = vueThis.appContext.config.globalProperties.view as ReadingView;
 let plugin = view.plugin as PluginType;
 let contentEl = view.contentEl as HTMLElement;
 
-let localPrefix = require("electron").ipcRenderer.sendSync("file-url");
+// 获取本地文件路径前缀（仅桌面端）
+let localPrefix = "";
+if (Platform.isDesktopApp) {
+    localPrefix = require("electron").ipcRenderer.sendSync("file-url");
+}
 // app.vault.adapter.getResourcePath("");
 let frontMatter = plugin.app.metadataCache.getFileCache(view.file).frontmatter;
 let audioSource = (frontMatter["langr-audio"] || "") as string;
@@ -126,7 +130,7 @@ if (audioSource && audioSource.startsWith("~/")) {
     audioSource =
         prefix + plugin.constants.basePath + audioSource.slice(1);
 }else {
-    audioSource = audioSource.startsWith("http") ? audioSource : localPrefix + audioSource;
+    audioSource = audioSource.startsWith("http") ? audioSource : (Platform.isDesktopApp ? localPrefix : "");
 }
 
 // 记笔记
