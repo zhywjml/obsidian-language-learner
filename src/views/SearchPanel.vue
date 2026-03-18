@@ -41,14 +41,17 @@ let loadings = ref<boolean[]>([]);
 let shows = ref<boolean[]>([]);
 watch(() => plugin.store.dictsChange, () => {
     let collection = Object.keys(plugin.settings.dictionaries)
+        .filter((dict: keyof typeof dicts) => {
+            // 只保留存在于 dicts 中的词典
+            return dicts[dict] && plugin.settings.dictionaries[dict].enable;
+        })
         .map((dict: keyof typeof dicts) => {
             return {
                 id: dict,
                 priority: plugin.settings.dictionaries[dict].priority,
                 name: dicts[dict].name,
             };
-        })
-        .filter((dict) => plugin.settings.dictionaries[dict.id].enable);
+        });
     collection.sort((a, b) => a.priority - b.priority);
 
     components.value = collection.map((dict) => {

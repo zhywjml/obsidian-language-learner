@@ -2,6 +2,15 @@
 
 ## 更新日志
 
+### 2026-03-18
+
+**在线词典优化**
+- 新增金山词霸词典，提供更多查词来源
+- 移除已失效的句酷词典
+- 优化有道词典结果显示布局
+- 金山词霸例句和柯林斯区域支持滚动查看，优化长内容显示体验
+- 更新金山词霸词典图标，使用高清PNG格式
+
 ### 2026-03-17
 
 - 添加 AnkiConnect 集成功能，支持将单词导出到 Anki
@@ -119,15 +128,18 @@
 </p>
 
 
-
 ### 界面展示
 
-<p align="center">
-  <img src="image.png" alt="阅读模式界面" width="600">
-</p>
+| 版本号 |                           界面展示                           |
+| :----: | :----------------------------------------------------------: |
+| v1.0.0 | <img src="image.png" alt="image-20260317191853449" style="zoom: 33%;" /> |
+| v1.0.1 | <img src="image-20260317191853449.png" alt="image-20260317191853449" style="zoom: 33%;" /> |
+
+
 <p align="center">
   <img src="image-1.png" alt="单词列表面板" width="400">
 </p>
+
 
 <p align="center">
   <img src="image-2.png" alt="离线词典面板" width="400">
@@ -253,12 +265,15 @@ Export learned words to Anki for spaced repetition:
 
 ### Screenshots
 
-<p align="center">
-  <img src="image.png" alt="Reading mode" width="600">
-</p>
+| Version |                         Screenshots                          |
+| :-----: | :----------------------------------------------------------: |
+| v1.0.0  | <img src="image.png" alt="image-20260317191853449" style="zoom: 33%;" /> |
+| v1.0.1  | <img src="image-20260317191853449.png" alt="image-20260317191853449" style="zoom: 33%;" /> |
+
 <p align="center">
   <img src="image-1.png" alt="Word list panel" width="400">
 </p>
+
 
 <p align="center">
   <img src="image-2.png" alt="Offline dictionary panel" width="400">

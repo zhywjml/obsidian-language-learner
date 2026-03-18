@@ -76,6 +76,7 @@ useLoading(() => props.word, "youdao", onSearch, emits);
     h2 {
         font-size: 1.3em;
         font-weight: 700;
+        margin-bottom: 6px;
     }
 
     .pron {
@@ -83,10 +84,41 @@ useLoading(() => props.word, "youdao", onSearch, emits);
         color: deeppink;
         font-size: 1.1em;
         cursor: pointer;
+        transition: opacity 0.2s;
+
+        &:hover {
+            opacity: 0.7;
+        }
     }
 
-    .meaning ul {
-        padding-left: 0;
+    .meaning {
+        ul {
+            padding-left: 0;
+        }
+
+        // 基本释义列表项
+        li {
+            padding: 2px 0;
+            line-height: 1.5;
+        }
+    }
+
+    // Tab 按钮样式
+    button {
+        margin-right: 4px;
+        margin-bottom: 4px;
+        padding: 4px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: transparent;
+        cursor: pointer;
+        font-size: 0.9em;
+        transition: all 0.2s;
+
+        &:hover {
+            border-color: #483699;
+            color: #483699;
+        }
     }
 
     h1,
@@ -141,8 +173,10 @@ useLoading(() => props.word, "youdao", onSearch, emits);
 
     .discrimination {
         .title {
-            font-size: 1.2em;
+            font-size: 1.1em;
             font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
         }
 
         .wordGroup {
@@ -150,7 +184,128 @@ useLoading(() => props.word, "youdao", onSearch, emits);
         }
 
         .wt-container {
-            margin-top: 0.5em;
+            margin-top: 0.6em;
+            padding: 8px 10px;
+            border-radius: 4px;
+        }
+
+        // 辨析中的词性标签
+        .star {
+            color: #888;
+            font-size: 0.9em;
+            margin-left: 6px;
+        }
+
+        // 辨析内容
+        p {
+            line-height: 1.6;
+        }
+    }
+
+    .translation {
+        margin-top: 10px;
+
+        .wt-container {
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+        }
+
+        .title {
+            font-weight: bold;
+            color: #483699;
+            margin-bottom: 6px;
+            font-size: 1em;
+
+            .gray {
+                color: #999;
+                font-size: 0.85em;
+                font-weight: normal;
+            }
+        }
+
+        .collapse-content {
+            color: #444;
+            font-size: 0.95em;
+            line-height: 1.6;
+
+            &.via {
+                color: #888;
+                font-size: 0.85em;
+                margin-top: 6px;
+                padding-top: 6px;
+                border-top: 1px dashed #ddd;
+            }
+        }
+
+        // 网络翻译中的标题样式
+        .search-word {
+            font-weight: bold;
+            color: #333;
+        }
+
+        // 翻译内容段落
+        p {
+            margin: 4px 0;
+        }
+    }
+
+    .word-group {
+        .wordGroup {
+            padding: 8px 0;
+            border-bottom: 1px dashed #ddd;
+
+            &:last-child {
+                border-bottom: none;
+            }
+        }
+
+        .contentTitle {
+            margin-bottom: 4px;
+
+            a {
+                color: #483699;
+                font-weight: 500;
+            }
+        }
+
+        // 词组释义
+        .content {
+            color: #444;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+    }
+
+    .rel-word {
+        .wordGroup {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+
+            &:last-child {
+                border-bottom: none;
+            }
+        }
+
+        .contentTitle {
+            margin-bottom: 4px;
+
+            a {
+                color: #483699;
+                font-weight: 500;
+            }
+        }
+
+        // 同根词词性标签
+        .star {
+            color: #888;
+            font-size: 0.9em;
+            margin-left: 8px;
+        }
+
+        // 同根词释义
+        .wordGroup:hover {
+            background-color: rgba(72, 54, 153, 0.03);
         }
     }
 }
@@ -158,7 +313,8 @@ useLoading(() => props.word, "youdao", onSearch, emits);
 .theme-light #youdao {
 
     .collins .collinsMajorTrans,
-    .discrimination .wt-container {
+    .discrimination .wt-container,
+    .translation .wt-container {
         background-color: #c7e2ef;
     }
 }
@@ -166,7 +322,8 @@ useLoading(() => props.word, "youdao", onSearch, emits);
 .theme-dark #youdao {
 
     .collins .collinsMajorTrans,
-    .discrimination .wt-container {
+    .discrimination .wt-container,
+    .translation .wt-container {
         background-color: #282a36;
     }
 }

@@ -93,8 +93,8 @@ export default {
     "Dictionaries": "詞典",
     "Youdao": "有道詞典",
     "Cambridge": "劍橋詞典",
-    "Jukuu": "句酷",
     "Hujiang": "滬江小D",
+    "Iciba": "金山詞霸",
 
     "Word Database Path": "單字資料庫路徑",
     "Choose a md file as word database for auto-completion": "選擇一個md文件作為單字資料庫以自動補全",
