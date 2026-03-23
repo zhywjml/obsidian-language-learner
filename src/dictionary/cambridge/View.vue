@@ -139,7 +139,7 @@ onMounted(() => {
 
         &::marker {
             text-transform: none;
-            color: black;
+            color: var(--text-muted);
         }
     }
 
@@ -155,8 +155,8 @@ onMounted(() => {
 
     .daccord {
         margin: 10px 0;
-        background-color: #fff8e4d7;
-        color: black;
+        background-color: rgba(254, 196, 0, 0.15);
+        color: var(--text-normal);
         border-radius: 3px;
 
         header {
@@ -196,6 +196,21 @@ onMounted(() => {
                 font-style: italic;
             }
         }
+    }
+}
+
+// 深色模式适配
+.theme-dark #cambridge {
+    .dwl {
+        border-top-color: var(--interactive-accent);
+    }
+
+    .dxref {
+        background-color: var(--background-modifier-border);
+    }
+
+    .daccord {
+        background-color: rgba(72, 54, 153, 0.15);
     }
 }
 </style>

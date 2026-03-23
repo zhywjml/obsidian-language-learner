@@ -113,7 +113,7 @@ watch(
         position: sticky;
         top: 0;
         z-index: 100;
-        border-top: 2px dashed gray;
+        border-top: 2px dashed var(--background-modifier-border);
         background-color: v-bind(bgRGBA3);
         height: 22px;
 
@@ -126,6 +126,7 @@ watch(
         .dict-name {
             padding-left: 3px;
             line-height: 20px;
+            color: var(--text-normal);
         }
 
         .empty-area {
@@ -133,7 +134,7 @@ watch(
         }
 
         button {
-            color: rgb(236, 239, 244);
+            color: var(--text-muted);
             width: 19px;
             height: 19px;
             background: 0 0;
@@ -149,7 +150,7 @@ watch(
             .fold-arrow {
                 transition: transform 0.4s;
                 padding: 3px;
-                fill: gray;
+                fill: var(--text-muted);
             }
         }
     }
@@ -180,7 +181,7 @@ watch(
                 position: absolute;
                 z-index: 10;
                 bottom: 0;
-                fill: gray;
+                fill: var(--text-muted);
                 margin: 0 auto;
             }
         }

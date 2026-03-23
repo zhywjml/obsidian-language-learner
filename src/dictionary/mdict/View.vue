@@ -252,11 +252,11 @@ useLoading(() => props.word, "mdict", onSearch, emits);
 .theme-dark #mdict-result {
     .result .definition {
         .phonetic, .pron {
-            color: #7aa2f7;
+            color: var(--text-accent);
         }
 
         .pos {
-            color: #bb9af7;
+            color: var(--interactive-accent);
         }
     }
 }

@@ -81,7 +81,7 @@ useLoading(() => props.word, "hjdict", onSearch, emits);
         font-size: 1.4em;
         font-weight: 500;
         padding-bottom: 5px;
-        border-bottom: 1px solid gray;
+        border-bottom: 1px solid var(--background-modifier-border);
         margin-bottom: 10px;
     }
 
@@ -101,10 +101,10 @@ useLoading(() => props.word, "hjdict", onSearch, emits);
         li {
             height: 16px;
             line-height: 1.2;
-            background-color: #f0f0f0;
+            background-color: var(--background-secondary);
             border-radius: 2px;
             text-align: center;
-            color: gray;
+            color: var(--text-muted);
             float: left;
             font-size: 1em;
             padding: 0 4px;
@@ -142,6 +142,19 @@ useLoading(() => props.word, "hjdict", onSearch, emits);
                 margin: 0 0 0.5em;
                 padding: 0;
             }
+        }
+    }
+}
+
+// 深色模式适配
+.theme-dark #hjdict {
+    p.detail-source span {
+        &.collins-icon {
+            background-color: #a03535;
+        }
+
+        &.wys-icon {
+            background-color: #35356a;
         }
     }
 }

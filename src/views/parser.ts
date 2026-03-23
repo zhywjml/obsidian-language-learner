@@ -19,6 +19,7 @@ type AnyNode = Root | Content | Content[];
  * 1. 将文本解析为 AST（抽象语法树）
  * 2. 识别已记录的词组并标记
  * 3. 将 AST 转换为 HTML，每个单词包裹在 span 标签中
+ * 4. 渲染 Markdown 语法（标题、粗斜体、图片等）
  *
  * 生成的 HTML 用于阅读视图，单词根据状态有不同的 CSS 类名
  */
@@ -39,9 +40,91 @@ export class TextParser {
             .use(this.stringfy2HTML());
     }
 
+    /**
+     * 解析文本为 HTML
+     * @param data 文本内容
+     */
     async parse(data: string) {
-        let newHTML = await this.text2HTML(data.trim());
-        return newHTML;
+        // 先处理 Markdown 语法（在原始文本上处理）
+        let processedData = this.preprocessMarkdown(data.trim());
+        let newHTML = await this.text2HTML(processedData);
+        let html = this.processContent(newHTML);
+        return html;
+    }
+
+    /**
+     * 预处理 Markdown 语法（在原始文本上处理）
+     * 处理 Obsidian wikilink 链接格式
+     */
+    private preprocessMarkdown(text: string): string {
+        // 处理 Obsidian wikilink 格式（非图片）: [[link]] 或 [[link|text]]
+        text = text.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (match, link, text) => {
+            return text || link;
+        });
+
+        return text;
+    }
+
+    /**
+     * 处理 Markdown 语法
+     * 支持：多级标题、粗体、斜体、删除线
+     */
+    processContent(htmlContent: string): string {
+        // 渲染多级标题 - 保留 span 标签内的内容
+        htmlContent = htmlContent.replace(
+            /(<span class="stns">)# (.*?)(<\/span>)(?=\s*<\/p>)/g,
+            '<h1>$1$2$3</h1>'
+        );
+        htmlContent = htmlContent.replace(
+            /(<span class="stns">)## (.*?)(<\/span>)(?=\s*<\/p>)/g,
+            '<h2>$1$2$3</h2>'
+        );
+        htmlContent = htmlContent.replace(
+            /(<span class="stns">)### (.*?)(<\/span>)(?=\s*<\/p>)/g,
+            '<h3>$1$2$3</h3>'
+        );
+        htmlContent = htmlContent.replace(
+            /(<span class="stns">)#### (.*?)(<\/span>)(?=\s*<\/p>)/g,
+            '<h4>$1$2$3</h4>'
+        );
+        htmlContent = htmlContent.replace(
+            /(<span class="stns">)##### (.*?)(<\/span>)(?=\s*<\/p>)/g,
+            '<h5>$1$2$3</h5>'
+        );
+        htmlContent = htmlContent.replace(
+            /(<span class="stns">)###### (.*?)(<\/span>)(?=\s*<\/p>)/g,
+            '<h6>$1$2$3</h6>'
+        );
+
+        // 渲染粗体 **text** 或 __text__
+        // 支持多个单词（多个span）的粗体
+        htmlContent = htmlContent.replace(
+            /\*\*((?:<span[^>]*>.*?<\/span>|\s|<[^>]+>)+)\*\*/g,
+            '<b>$1</b>'
+        );
+        htmlContent = htmlContent.replace(
+            /__((?:<span[^>]*>.*?<\/span>|\s|<[^>]+>)+)__/g,
+            '<b>$1</b>'
+        );
+
+        // 渲染斜体 *text* 或 _text_
+        // 注意：单个 * 和 _ 可能与粗体冲突，需要确保不是成对出现
+        htmlContent = htmlContent.replace(
+            /(?<!\*)\*(?!\*)((?:<span[^>]*>.*?<\/span>|\s|<[^>]+)+)\*(?!\*)/g,
+            '<i>$1</i>'
+        );
+        htmlContent = htmlContent.replace(
+            /(?<!_)_(?!_)((?:<span[^>]*>.*?<\/span>|\s|<[^>]+)+)_(?!_)/g,
+            '<i>$1</i>'
+        );
+
+        // 渲染删除线 ~~text~~
+        htmlContent = htmlContent.replace(
+            /~~((?:<span[^>]*>.*?<\/span>|\s|<[^>]+)+)~~/g,
+            '<del>$1</del>'
+        );
+
+        return htmlContent;
     }
 
     async countWords(text: string): Promise<[number, number, number]> {

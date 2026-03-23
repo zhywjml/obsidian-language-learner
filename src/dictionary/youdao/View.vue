@@ -324,7 +324,44 @@ useLoading(() => props.word, "youdao", onSearch, emits);
     .collins .collinsMajorTrans,
     .discrimination .wt-container,
     .translation .wt-container {
-        background-color: #282a36;
+        background-color: rgba(72, 54, 153, 0.15);
+    }
+
+    // Tab 按钮深色模式
+    button {
+        border-color: var(--background-modifier-border);
+        color: var(--text-normal);
+
+        &:hover {
+            border-color: var(--interactive-accent);
+            color: var(--interactive-accent);
+        }
+    }
+
+    .discrimination .title {
+        color: var(--text-normal);
+    }
+
+    .translation {
+        .collapse-content {
+            color: var(--text-normal);
+        }
+
+        .search-word {
+            color: var(--text-normal);
+        }
+    }
+
+    .word-group .content {
+        color: var(--text-muted);
+    }
+
+    .rel-word .wordGroup:hover {
+        background-color: rgba(72, 54, 153, 0.1);
+    }
+
+    .collins .exampleLists {
+        border-left-color: var(--background-modifier-border);
     }
 }
 </style>

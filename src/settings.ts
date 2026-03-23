@@ -96,7 +96,7 @@ export const DEFAULT_SETTINGS: MyPluginSettings = {
     // search
     popup_search: true,
     auto_pron: true,
-    function_key: "ctrlKey",
+    function_key: "disable",
     dictionaries: {
         "youdao": { enable: true, priority: 1 },
         "cambridge": { enable: true, priority: 2 },

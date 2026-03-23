@@ -437,6 +437,36 @@ if (plugin.constants.platform === "mobile") {
                 border: 1px solid green;
             }
         }
+
+        // Markdown 渲染元素样式
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--text-normal);
+            font-weight: 700;
+            margin: 0.5em 0;
+            user-select: text;
+        }
+
+        h1 { font-size: 1.8em; }
+        h2 { font-size: 1.5em; }
+        h3 { font-size: 1.3em; }
+        h4 { font-size: 1.1em; }
+        h5 { font-size: 1em; }
+        h6 { font-size: 0.9em; }
+
+        strong {
+            font-weight: 700;
+            user-select: text;
+        }
+
+        em {
+            font-style: italic;
+            user-select: text;
+        }
+
+        del {
+            text-decoration: line-through;
+            user-select: text;
+        }
     }
 
     .note-area {

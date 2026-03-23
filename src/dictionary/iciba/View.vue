@@ -134,14 +134,14 @@ useLoading(() => props.word, "iciba", onSearch, emits);
 
             .pos {
                 display: inline-block;
-                color: #483699;
+                color: var(--interactive-accent);
                 font-weight: 500;
                 margin-right: 8px;
                 font-style: italic;
             }
 
             .means {
-                color: #333;
+                color: var(--text-normal);
             }
         }
     }
@@ -159,7 +159,7 @@ useLoading(() => props.word, "iciba", onSearch, emits);
 
         .toggle-hint {
             font-size: 0.75em;
-            color: #888;
+            color: var(--text-muted);
             font-weight: normal;
         }
     }
@@ -171,7 +171,7 @@ useLoading(() => props.word, "iciba", onSearch, emits);
             font-size: 1.1em;
             font-weight: 600;
             margin-bottom: 10px;
-            color: #483699;
+            color: var(--interactive-accent);
         }
 
         .sentences-container {
@@ -184,16 +184,17 @@ useLoading(() => props.word, "iciba", onSearch, emits);
             }
 
             &::-webkit-scrollbar-track {
-                background: rgba(0, 0, 0, 0.05);
+                background: var(--background-modifier-border);
                 border-radius: 3px;
             }
 
             &::-webkit-scrollbar-thumb {
-                background: rgba(72, 54, 153, 0.3);
+                background: var(--interactive-accent);
                 border-radius: 3px;
+                opacity: 0.5;
 
                 &:hover {
-                    background: rgba(72, 54, 153, 0.5);
+                    opacity: 0.8;
                 }
             }
 
@@ -206,22 +207,22 @@ useLoading(() => props.word, "iciba", onSearch, emits);
             margin: 10px 0;
             padding: 8px 10px;
             border-radius: 6px;
-            background-color: rgba(72, 54, 153, 0.05);
+            background-color: var(--background-secondary);
 
             .en {
-                color: #333;
+                color: var(--text-normal);
                 font-size: 0.95em;
                 margin: 0;
             }
 
             .cn {
-                color: #666;
+                color: var(--text-muted);
                 font-size: 0.9em;
                 margin: 4px 0 0 0;
             }
 
             .from {
-                color: #999;
+                color: var(--text-faint);
                 font-size: 0.85em;
                 margin: 2px 0 0 0;
                 font-style: italic;
@@ -236,7 +237,7 @@ useLoading(() => props.word, "iciba", onSearch, emits);
             font-size: 1.1em;
             font-weight: 600;
             margin-bottom: 10px;
-            color: #483699;
+            color: var(--interactive-accent);
         }
 
         .collins-container {
@@ -249,16 +250,17 @@ useLoading(() => props.word, "iciba", onSearch, emits);
             }
 
             &::-webkit-scrollbar-track {
-                background: rgba(0, 0, 0, 0.05);
+                background: var(--background-modifier-border);
                 border-radius: 3px;
             }
 
             &::-webkit-scrollbar-thumb {
-                background: rgba(72, 54, 153, 0.3);
+                background: var(--interactive-accent);
                 border-radius: 3px;
+                opacity: 0.5;
 
                 &:hover {
-                    background: rgba(72, 54, 153, 0.5);
+                    opacity: 0.8;
                 }
             }
 
@@ -271,22 +273,22 @@ useLoading(() => props.word, "iciba", onSearch, emits);
             margin: 12px 0;
             padding: 10px;
             border-radius: 6px;
-            background-color: rgba(72, 54, 153, 0.05);
+            background-color: var(--background-secondary);
 
             .def {
-                color: #333;
+                color: var(--text-normal);
                 font-size: 0.95em;
                 margin: 0;
 
                 .posp {
-                    color: #483699;
+                    color: var(--interactive-accent);
                     font-weight: 500;
                     margin-right: 6px;
                 }
             }
 
             .tran {
-                color: #666;
+                color: var(--text-muted);
                 font-size: 0.9em;
                 margin: 4px 0 0 0;
             }
@@ -294,19 +296,19 @@ useLoading(() => props.word, "iciba", onSearch, emits);
             .examples {
                 margin-top: 8px;
                 padding-left: 12px;
-                border-left: 2px solid #483699;
+                border-left: 2px solid var(--interactive-accent);
 
                 .example {
                     margin: 6px 0;
 
                     .ex {
-                        color: #444;
+                        color: var(--text-normal);
                         font-size: 0.9em;
                         margin: 0;
                     }
 
                     .ex-tran {
-                        color: #888;
+                        color: var(--text-muted);
                         font-size: 0.85em;
                         margin: 2px 0 0 0;
                     }
@@ -317,23 +319,9 @@ useLoading(() => props.word, "iciba", onSearch, emits);
 }
 
 .theme-dark #iciba {
-    .parts .part-item .means {
-        color: #ddd;
-    }
-
     .sentences .sentence-item,
     .collins .collins-item {
-        background-color: rgba(72, 54, 153, 0.1);
-    }
-
-    .sentences .sentence-item .en,
-    .collins .collins-item .def {
-        color: #ddd;
-    }
-
-    .sentences .sentence-item .cn,
-    .collins .collins-item .tran {
-        color: #aaa;
+        background-color: var(--background-secondary-alt);
     }
 }
 </style>

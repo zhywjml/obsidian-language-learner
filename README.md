@@ -2,6 +2,23 @@
 
 ## 更新日志
 
+### 2026-03-23
+
+**界面优化**
+- 新增插件 UI 语言设置，支持中文/英文切换（默认中文）
+- 词典界面适配深色模式，优化在线词典和离线词典在深色主题下的显示效果
+
+**阅读模式 Markdown 渲染**
+- 新增标题渲染支持（# ~ ######）
+- 新增粗体渲染支持（`**text**` 或 `__text__`）
+- 新增斜体渲染支持（`*text*` 或 `_text_`）
+- 新增删除线渲染支持（`~~text~~`）
+- 新增阅读区样式设置面板，支持调整字号、行距、字距
+
+**功能调整**
+- 默认禁用 Ctrl 键查词功能，避免误触发（可在设置中手动启用）
+- 修复金山词霸词典图标显示问题
+
 ### 2026-03-18
 
 **在线词典优化**
@@ -337,6 +354,7 @@ npm run build
 
 - [@guopenghui](https://github.com/guopenghui) - 原插件作者
 - [@terasum](https://github.com/terasum) - js-mdict 项目作者
+- [@asa-world](https://github.com/asa-world/obsidian-language-learner) - 阅读模式 Markdown 渲染功能参考
 - [Claude Code](https://claude.ai/code) - AI 编程助手
 - [glm-5](https://bigmodel.cn/) - 智谱 AI 大模型
 - All dictionary providers and the MDict community
