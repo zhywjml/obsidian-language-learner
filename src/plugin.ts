@@ -46,6 +46,7 @@ import store from "./store";
 import { playAudio } from "./utils/helpers";
 import type { Position } from "./constant";
 import { InputModal, AudioFileSuggestModal } from "./modals"
+import { dicts } from "./dictionary/list";
 
 import Global from "./views/Global.vue";
 
@@ -724,6 +725,23 @@ export default class LanguageLearner extends Plugin {
                 settings[k] = data[k];
             }
         }
+
+        // 清理不存在的词典设置（如已删除的 jukuu）
+        const validDicts = Object.keys(dicts);
+        const savedDicts = Object.keys(settings.dictionaries || {});
+        for (const dict of savedDicts) {
+            if (!validDicts.includes(dict)) {
+                delete settings.dictionaries[dict];
+            }
+        }
+
+        // 添加新增的词典设置
+        for (const dict of validDicts) {
+            if (!settings.dictionaries[dict]) {
+                settings.dictionaries[dict] = { enable: true, priority: validDicts.indexOf(dict) + 1 };
+            }
+        }
+
         (this.settings as any) = settings;
     }
 
