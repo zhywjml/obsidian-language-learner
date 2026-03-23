@@ -18,7 +18,7 @@ import { WebDb } from "./db/web_db";
 import { LocalDb } from "./db/local_db";
 import { MarkdownDb } from "./db/markdown_db";
 import LanguageLearner from "./plugin";
-import { t } from "./lang/helper";
+import { t, setLanguage } from "./lang/helper";
 import { WarningModal, OpenFileModal, MarkdownFileSuggestModal, MdictFileSuggestModal } from "./modals"
 import { dicts } from "@dict/list";
 import store from "./store";
@@ -27,6 +27,8 @@ import store from "./store";
 export type StorageType = "indexeddb" | "markdown" | "server";
 
 export interface MyPluginSettings {
+    // ui language
+    ui_language: "zh" | "en";
     // storage
     storage_type: StorageType;
     md_db_path: string;  // Markdown 文件存储路径
@@ -77,6 +79,8 @@ export interface MyPluginSettings {
 }
 
 export const DEFAULT_SETTINGS: MyPluginSettings = {
+    // ui language
+    ui_language: "zh",
     // storage
     storage_type: "markdown",  // 默认使用 Markdown 文件（支持 Obsidian Sync）
     md_db_path: "Language Learner/words.md",  // Markdown 文件路径
@@ -146,6 +150,7 @@ export class SettingTab extends PluginSettingTab {
         containerEl.empty();
         containerEl.createEl("h1", { text: "Settings for Language Learner" });
 
+        this.uiLanguageSettings(containerEl);
         this.storageSettings(containerEl);
         this.langSettings(containerEl);
         this.querySettings(containerEl);
@@ -156,6 +161,26 @@ export class SettingTab extends PluginSettingTab {
         this.completionSettings(containerEl);
         this.reviewSettings(containerEl);
         this.ankiSettings(containerEl);
+    }
+
+    uiLanguageSettings(containerEl: HTMLElement) {
+        containerEl.createEl("h3", { text: t("Plugin Language") });
+
+        new Setting(containerEl)
+            .setName(t("Interface Language"))
+            .setDesc(t("Choose the language for plugin interface"))
+            .addDropdown(dropdown => dropdown
+                .addOption("zh", t("Chinese"))
+                .addOption("en", t("English"))
+                .setValue(this.plugin.settings.ui_language)
+                .onChange(async (value: "zh" | "en") => {
+                    this.plugin.settings.ui_language = value;
+                    setLanguage(value);
+                    await this.plugin.saveSettings();
+                    // 刷新设置页面以应用新语言
+                    this.display();
+                })
+            );
     }
 
     storageSettings(containerEl: HTMLElement) {

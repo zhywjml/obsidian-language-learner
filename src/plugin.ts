@@ -32,7 +32,7 @@ import { AnkiExportView, ANKI_EXPORT_ICON, ANKI_EXPORT_VIEW } from "./views/Anki
 import { MdictPanelView, MDICT_ICON, MDICT_PANEL_VIEW } from "./dictionary/mdict/MdictPanelView";
 // import { PDFView, PDF_FILE_EXTENSION, VIEW_TYPE_PDF } from "./views/PDFView";
 
-import { t } from "./lang/helper";
+import { t, setLanguage } from "./lang/helper";
 import DbProvider from "./db/base";
 import { WebDb } from "./db/web_db";
 import { LocalDb } from "./db/local_db";
@@ -743,6 +743,9 @@ export default class LanguageLearner extends Plugin {
         }
 
         (this.settings as any) = settings;
+
+        // 设置插件界面语言
+        setLanguage(settings.ui_language || "zh");
     }
 
     async saveSettings() {

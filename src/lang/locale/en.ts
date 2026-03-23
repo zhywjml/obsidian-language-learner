@@ -1,6 +1,11 @@
 // English
 
 export default {
+    // UI Language
+    "Plugin Language": "Plugin Language",
+    "Interface Language": "Interface Language",
+    "Choose the language for plugin interface": "Choose the language for plugin interface",
+
     // plugin.ts
     "Open word search panel": "Open word search panel",
     "Open new word panel": "Open new word panel",

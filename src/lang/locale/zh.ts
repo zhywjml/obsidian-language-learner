@@ -1,6 +1,11 @@
 // 简体中文
 
 export default {
+    // UI Language
+    "Plugin Language": "插件语言",
+    "Interface Language": "界面语言",
+    "Choose the language for plugin interface": "选择插件的界面语言",
+
     // plugin.ts
     "Open word search panel": "打开查词面板",
     "Open new word panel": "打开新词面板",
