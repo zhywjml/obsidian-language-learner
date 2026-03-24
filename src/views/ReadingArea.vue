@@ -107,6 +107,7 @@ import { MarkdownRenderer, Platform } from "obsidian";
 import PluginType from "@/plugin";
 import { t } from "@/lang/helper";
 import { useEvent } from "@/utils/use";
+import { debounce } from "@/utils/helpers";
 import store from "@/store";
 import { ReadingView } from "./ReadingView";
 import CountBar from "./CountBar.vue";
@@ -224,11 +225,16 @@ let fontSizeNum = ref(parseInt(plugin.settings.font_size) || 15);
 let lineHeightNum = ref(parseFloat(plugin.settings.line_height) || 1.8);
 let wordSpacingNum = ref(parseFloat(plugin.settings.word_spacing) || 0);
 
-// 监听样式变化并更新 store
-watch([fontSizeNum, lineHeightNum, wordSpacingNum], ([fs, lh, ws]) => {
+// 创建防抖的样式更新函数
+const updateStyles = debounce((fs: number, lh: number, ws: number) => {
     store.fontSize = `${fs}px`;
     store.lineHeight = `${lh}`;
     store.wordSpacing = `${ws}em`;
+}, 100); // 100ms 防抖延迟
+
+// 监听样式变化
+watch([fontSizeNum, lineHeightNum, wordSpacingNum], ([fs, lh, ws]) => {
+    updateStyles(fs, lh, ws);
 }, { immediate: true });
 
 let renderedText = ref("");
