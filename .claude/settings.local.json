@@ -69,7 +69,9 @@
       "Bash(grep -iE \"\\\\.md$|changelog|update|log\")",
       "Bash(git fetch:*)",
       "Bash(git remote:*)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(cd:*)",
+      "WebFetch(domain:ds-restful-api-bj-prod.oss-cn-beijing.aliyuncs.com)"
     ]
   }
 }

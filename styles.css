@@ -1054,6 +1054,15 @@
   text-decoration: line-through;
   user-select: text;
 }
+#langr-reading .text-area img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1em auto;
+}
+#langr-reading .text-area div:has(> img) {
+  text-align: center;
+}
 #langr-reading .note-area {
   display: flex;
   height: 100%;

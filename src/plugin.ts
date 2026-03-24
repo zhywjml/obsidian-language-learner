@@ -54,6 +54,9 @@ import Global from "./views/Global.vue";
 
 export const FRONT_MATTER_KEY: string = "langr";
 
+// 导出图片路径前缀变量（用于阅读模式渲染本地图片）
+export let imgnum: string = "";
+
 /**
  * Language Learner 主插件类
  * 负责管理插件的生命周期、视图注册、事件处理等
@@ -555,6 +558,15 @@ export default class LanguageLearner extends Plugin {
                             if (state.type === "markdown" && state.state?.file) {
                                 const cache = pluginSelf.app.metadataCache
                                     .getCache(state.state.file);
+                                // 检测图片路径前缀（用于阅读模式渲染本地图片）
+                                const imgElements = document.getElementsByTagName('img');
+                                for (let i = 0; i < imgElements.length; i++) {
+                                    const src = imgElements[i].getAttribute('src');
+                                    if (src && !src.includes('http')) {
+                                        imgnum = src;
+                                        break;
+                                    }
+                                }
                                 if (cache?.frontmatter && cache.frontmatter[FRONT_MATTER_KEY]) {
                                     if (!pluginSelf.markdownButtons["reading"]) {
                                         // 在软件初始化的时候，view上面可能没有 addAction 这个方法

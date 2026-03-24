@@ -4,6 +4,7 @@ import { Root, Content, Literal, Parent, Sentence } from "nlcst";
 import { modifyChildren } from "unist-util-modify-children";
 import { visit } from "unist-util-visit";
 import { toString } from "nlcst-to-string";
+import { imgnum } from "@/plugin";
 
 import { Phrase, Word } from "@/db/interface";
 import Plugin from "@/plugin";
@@ -57,6 +58,12 @@ export class TextParser {
      * 处理 Obsidian wikilink 链接格式
      */
     private preprocessMarkdown(text: string): string {
+        // 处理 Obsidian 图片 wikilink 格式: ![[image.jpg]] 转换为 ![image](image.jpg)
+        text = text.replace(/!\[\[([^\]|]+)\]\]/g, (match, path) => {
+            const filename = path.split('/').pop();
+            return `![${filename}](${path})`;
+        });
+
         // 处理 Obsidian wikilink 格式（非图片）: [[link]] 或 [[link|text]]
         text = text.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (match, link, text) => {
             return text || link;
@@ -67,9 +74,51 @@ export class TextParser {
 
     /**
      * 处理 Markdown 语法
-     * 支持：多级标题、粗体、斜体、删除线
+     * 支持：多级标题、粗体、斜体、删除线、图片
      */
     processContent(htmlContent: string): string {
+        // 渲染 Markdown 图片 ![alt](url) - 优先处理以避免与其他格式冲突
+        htmlContent = htmlContent.replace(/<p>(?=.*!)(?=.*\[)(?=.*\])(?=.*\()(?=.*\)).*<\/p>/g, (match) => {
+            const pattern = /!\[(.*?)\]\((.*?)\)/;
+            const str = match.replace(/<[^>]+>/g, '');
+            const tq = pattern.exec(str);
+            if (tq) {
+                const altText = tq[1];
+                const srcUrl = tq[2];
+
+                // 创建图片容器（居中显示）
+                const imgContainer = document.createElement('div');
+                imgContainer.style.textAlign = 'center';
+                const imgWrapper = document.createElement('div');
+                imgWrapper.style.display = 'inline-block';
+                const img = document.createElement('img');
+                img.alt = altText;
+
+                // 处理图片路径
+                if (/^https?:\/\//.test(srcUrl)) {
+                    // 网络图片直接使用
+                    img.src = srcUrl;
+                } else if (imgnum) {
+                    // 本地图片：智能合并 vault 路径和图片相对路径
+                    const prefix = srcUrl.substring(0, 3);
+                    const index = imgnum.indexOf(prefix);
+                    if (index !== -1 && index !== 0 && imgnum.charAt(index - 1) === '/') {
+                        // 找到匹配前缀，截断并拼接
+                        img.src = imgnum.substring(0, index) + srcUrl;
+                    } else {
+                        // 无匹配前缀，直接拼接
+                        img.src = imgnum + srcUrl;
+                    }
+                } else {
+                    img.src = srcUrl;
+                }
+
+                imgWrapper.appendChild(img);
+                imgContainer.appendChild(imgWrapper);
+                return imgContainer.outerHTML;
+            }
+            return match;
+        });
         // 渲染多级标题 - 保留 span 标签内的内容
         htmlContent = htmlContent.replace(
             /(<span class="stns">)# (.*?)(<\/span>)(?=\s*<\/p>)/g,

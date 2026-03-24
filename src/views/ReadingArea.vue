@@ -467,6 +467,19 @@ if (plugin.constants.platform === "mobile") {
             text-decoration: line-through;
             user-select: text;
         }
+
+        // 图片样式
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 1em auto;
+        }
+
+        // 图片容器样式
+        div:has(> img) {
+            text-align: center;
+        }
     }
 
     .note-area {
