@@ -159,6 +159,7 @@
 | :----: | :----------------------------------------------------------: |
 | v1.0.0 | <img src="image.png" alt="image-20260317191853449" style="zoom: 33%;" /> |
 | v1.0.1 | <img src="image-20260317191853449.png" alt="image-20260317191853449" style="zoom: 33%;" /> |
+| v1.3.1 | <img src="image-20260324103233447.png" alt="image-20260324103233447" style="zoom:33%;" /> |
 
 
 <p align="center">
@@ -294,6 +295,7 @@ Export learned words to Anki for spaced repetition:
 | :-----: | :----------------------------------------------------------: |
 | v1.0.0  | <img src="image.png" alt="image-20260317191853449" style="zoom: 33%;" /> |
 | v1.0.1  | <img src="image-20260317191853449.png" alt="image-20260317191853449" style="zoom: 33%;" /> |
+| v1.3.1  | <img src="image-20260324103314793.png" alt="image-20260324103314793" style="zoom:33%;" /> |
 
 <p align="center">
   <img src="image-1.png" alt="Word list panel" width="400">
