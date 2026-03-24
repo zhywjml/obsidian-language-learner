@@ -1,6 +1,7 @@
 import {
     ArticleWords, Word, Phrase, WordsPhrase, Sentence,
-    ExpressionInfo, ExpressionInfoSimple, CountInfo, WordCount, Span
+    ExpressionInfo, ExpressionInfoSimple, CountInfo, WordCount, Span,
+    HeatmapStats
 } from "./interface";
 
 /**
@@ -35,6 +36,8 @@ abstract class DbProvider {
     abstract getCount(): Promise<CountInfo>;
     // 获取7天内的统计信息
     abstract countSeven(): Promise<WordCount[]>;
+    // 获取热力图数据（指定年份，不传则使用当前年份）
+    abstract getHeatmapData(year?: number): Promise<HeatmapStats>;
     // 销毁数据库
     abstract destroyAll(): Promise<void>;
     // 导入数据库

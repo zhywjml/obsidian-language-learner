@@ -11,7 +11,8 @@ import { TFile, TFolder, normalizePath } from "obsidian";
 import { moment } from "obsidian";
 import {
     ArticleWords, Word, Phrase, WordsPhrase, Sentence,
-    ExpressionInfo, ExpressionInfoSimple, CountInfo, WordCount, Span
+    ExpressionInfo, ExpressionInfoSimple, CountInfo, WordCount, Span,
+    HeatmapData, HeatmapStats
 } from "./interface";
 import DbProvider from "./base";
 import Plugin from "@/plugin";
@@ -146,6 +147,7 @@ export class MarkdownDb extends DbProvider {
         let section: 'none' | 'words' | 'phrases' = 'none';
         let inNotes = false;
         let inSentences = false;
+        let inMeaning = false;
 
         for (const line of lines) {
             // 检测章节
@@ -175,17 +177,29 @@ export class MarkdownDb extends DbProvider {
                 };
                 inNotes = false;
                 inSentences = false;
+                inMeaning = false;
                 continue;
             }
 
             if (!currentWord) continue;
 
+            // 检测其他属性开始，结束 meaning 收集
+            if (line.startsWith('- status:') || line.startsWith('- tags:') ||
+                line.startsWith('- date:') || line.startsWith('- notes:') ||
+                line.startsWith('- sentences:')) {
+                inMeaning = false;
+            }
+
             // 解析属性
             if (line.startsWith('- meaning:')) {
                 currentWord.meaning = line.substring(10).trim();
+                inMeaning = true;
+                inNotes = false;
+                inSentences = false;
             } else if (line.startsWith('- status:')) {
                 const statusVal = parseInt(line.substring(9).trim());
                 currentWord.status = isNaN(statusVal) ? 1 : statusVal;
+                inMeaning = false;
             } else if (line.startsWith('- tags:')) {
                 const tagsStr = line.substring(7).trim();
                 currentWord.tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(t => t) : [];
@@ -194,9 +208,11 @@ export class MarkdownDb extends DbProvider {
             } else if (line.startsWith('- notes:')) {
                 inNotes = true;
                 inSentences = false;
+                inMeaning = false;
             } else if (line.startsWith('- sentences:')) {
                 inNotes = false;
                 inSentences = true;
+                inMeaning = false;
             } else if (line.startsWith('  - ') && currentWord) {
                 const content = line.substring(4).trim();
                 if (inNotes) {
@@ -209,7 +225,13 @@ export class MarkdownDb extends DbProvider {
                         trans: parts[1] || '',
                         origin: parts[2] || ''
                     });
+                } else if (inMeaning) {
+                    // 多行 meaning 的后续行（带缩进但没有 - ）
+                    currentWord.meaning += '\n' + content;
                 }
+            } else if (inMeaning && line.trim() && !line.startsWith('- ') && currentWord) {
+                // 继续累积 meaning 内容（多行，不带 - 前缀但带缩进）
+                currentWord.meaning += '\n' + line.trim();
             }
         }
 
@@ -257,7 +279,16 @@ ${innerContent.trim()}
      */
     private formatEntry(entry: ExpressionInfo): string {
         let content = `### ${entry.expression}\n`;
-        content += `- meaning: ${entry.meaning}\n`;
+        // 处理多行 meaning，确保后续行有缩进
+        if (entry.meaning.includes('\n')) {
+            const lines = entry.meaning.split('\n');
+            content += `- meaning: ${lines[0]}\n`;
+            for (let i = 1; i < lines.length; i++) {
+                content += `  ${lines[i]}\n`;
+            }
+        } else {
+            content += `- meaning: ${entry.meaning}\n`;
+        }
         content += `- status: ${entry.status}\n`;
         if (entry.tags.length > 0) {
             content += `- tags: ${entry.tags.join(', ')}\n`;
@@ -564,6 +595,36 @@ ${innerContent.trim()}
             today: new Array(5).fill(0),
             accumulated: new Array(5).fill(0)
         }));
+    }
+
+    async getHeatmapData(): Promise<HeatmapStats> {
+        await this.ensureLoaded();
+
+        // Markdown 格式不存储精确时间，返回基于当前日期的模拟数据
+        // 实际使用时建议切换到 IndexedDB 存储方式
+        const today = moment();
+        const startDate = today.clone().subtract(30, 'days');
+        const data: HeatmapData[] = [];
+
+        let current = startDate.clone();
+        while (current.isSameOrBefore(today)) {
+            data.push({
+                date: current.format('YYYY-MM-DD'),
+                count: 0,
+                level: 0,
+            });
+            current.add(1, 'day');
+        }
+
+        return {
+            totalDays: data.length,
+            totalLearned: this.words.size,
+            longestStreak: 0,
+            currentStreak: 0,
+            data: data,
+            startDate: startDate.format('YYYY-MM-DD'),
+            endDate: today.format('YYYY-MM-DD'),
+        };
     }
 
     async destroyAll(): Promise<void> {

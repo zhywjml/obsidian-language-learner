@@ -15,7 +15,7 @@ import {
 
 export class ReviewDb {
     private vault: Vault;
-    private basePath: string;
+    private basePath: string = "Language Learner/Review";
 
     // 文件路径
     private get cardsPath(): string {
@@ -31,9 +31,9 @@ export class ReviewDb {
         return normalizePath(`${this.basePath}/daily_queue.json`);
     }
 
-    constructor(vault: Vault, basePath: string) {
+    constructor(vault: Vault, _basePath?: string) {
         this.vault = vault;
-        this.basePath = normalizePath(`${basePath}/Language Learner/Review`);
+        // 使用固定的 vault 相对路径，不依赖系统路径
     }
 
     /**
@@ -284,6 +284,16 @@ export class ReviewDb {
             await this.vault.modify(file, content);
         } else {
             await this.vault.create(this.queuePath, content);
+        }
+    }
+
+    /**
+     * 清除所有每日队列
+     */
+    async clearDailyQueues(): Promise<void> {
+        const file = this.vault.getAbstractFileByPath(this.queuePath);
+        if (file instanceof TFile) {
+            await this.vault.modify(file, '[]');
         }
     }
 

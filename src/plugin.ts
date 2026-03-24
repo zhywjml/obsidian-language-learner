@@ -30,6 +30,7 @@ import { StatView, STAT_ICON, STAT_VIEW_TYPE } from "./views/StatView";
 import { DataPanelView, DATA_ICON, DATA_PANEL_VIEW } from "./views/DataPanelView";
 import { AnkiExportView, ANKI_EXPORT_ICON, ANKI_EXPORT_VIEW } from "./views/AnkiExportView";
 import { MdictPanelView, MDICT_ICON, MDICT_PANEL_VIEW } from "./dictionary/mdict/MdictPanelView";
+import { ReviewPanelView, REVIEW_PANEL_VIEW, REVIEW_ICON } from "./views/ReviewPanelView";
 // import { PDFView, PDF_FILE_EXTENSION, VIEW_TYPE_PDF } from "./views/PDFView";
 
 import { t, setLanguage } from "./lang/helper";
@@ -142,10 +143,11 @@ export default class LanguageLearner extends Plugin {
         this.app.workspace.detachLeavesOfType(SEARCH_PANEL_VIEW);
         this.app.workspace.detachLeavesOfType(LEARN_PANEL_VIEW);
         this.app.workspace.detachLeavesOfType(DATA_PANEL_VIEW);
-        this.app.workspace.detachLeavesOfType(STAT_VIEW_TYPE);
+        // this.app.workspace.detachLeavesOfType(STAT_VIEW_TYPE);
         this.app.workspace.detachLeavesOfType(READING_VIEW_TYPE);
         this.app.workspace.detachLeavesOfType(MDICT_PANEL_VIEW);
         this.app.workspace.detachLeavesOfType(ANKI_EXPORT_VIEW);
+        this.app.workspace.detachLeavesOfType(REVIEW_PANEL_VIEW);
 
         this.db.close();
         this.mdictEngine?.close();
@@ -304,6 +306,15 @@ export default class LanguageLearner extends Plugin {
                 },
             });
         }
+
+        // 注册打开智能复习面板命令
+        this.addCommand({
+            id: "langr-open-review-panel",
+            name: t("Open Smart Review"),
+            callback: () => {
+                this.activateView(REVIEW_PANEL_VIEW, "right");
+            },
+        });
     }
 
     registerCustomViews() {
@@ -331,11 +342,11 @@ export default class LanguageLearner extends Plugin {
             (leaf) => new ReadingView(leaf, this)
         );
 
-        //注册统计视图
-        this.registerView(STAT_VIEW_TYPE, (leaf) => new StatView(leaf, this));
-        this.addRibbonIcon(STAT_ICON, t("Open statistics"), async (evt) => {
-            this.activateView(STAT_VIEW_TYPE, "right");
-        });
+        //注册统计视图（已禁用）
+        // this.registerView(STAT_VIEW_TYPE, (leaf) => new StatView(leaf, this));
+        // this.addRibbonIcon(STAT_ICON, t("Open statistics"), async (evt) => {
+        //     this.activateView(STAT_VIEW_TYPE, "right");
+        // });
 
         //注册单词列表视图
         this.registerView(
@@ -372,6 +383,15 @@ export default class LanguageLearner extends Plugin {
                 this.activateView(ANKI_EXPORT_VIEW, "right");
             });
         }
+
+        // 注册智能复习面板
+        this.registerView(
+            REVIEW_PANEL_VIEW,
+            (leaf) => new ReviewPanelView(leaf, this)
+        );
+        this.addRibbonIcon(REVIEW_ICON, t("Smart Review"), (evt) => {
+            this.activateView(REVIEW_PANEL_VIEW, "right");
+        });
     }
 
     async setMarkdownView(leaf: WorkspaceLeaf, focus: boolean = true) {
@@ -559,6 +579,7 @@ export default class LanguageLearner extends Plugin {
                                 const cache = pluginSelf.app.metadataCache
                                     .getCache(state.state.file);
                                 // 检测图片路径前缀（用于阅读模式渲染本地图片）
+                                // 遍历页面上的 img 标签，获取第一个非 HTTP 的本地图片路径
                                 const imgElements = document.getElementsByTagName('img');
                                 for (let i = 0; i < imgElements.length; i++) {
                                     const src = imgElements[i].getAttribute('src');
@@ -567,6 +588,7 @@ export default class LanguageLearner extends Plugin {
                                         break;
                                     }
                                 }
+
                                 if (cache?.frontmatter && cache.frontmatter[FRONT_MATTER_KEY]) {
                                     if (!pluginSelf.markdownButtons["reading"]) {
                                         // 在软件初始化的时候，view上面可能没有 addAction 这个方法

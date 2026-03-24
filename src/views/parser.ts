@@ -139,7 +139,7 @@ export class TextParser {
         // 先处理 Markdown 语法（在原始文本上处理）
         let processedData = this.preprocessMarkdown(data.trim());
         let newHTML = await this.text2HTML(processedData);
-        let html = this.processContent(newHTML);
+        let html = this.processContentOptimized(newHTML);
 
         // 缓存结果
         cacheParseResult(data, html);
@@ -319,6 +319,133 @@ export class TextParser {
         );
 
         return htmlContent;
+    }
+
+    /**
+     * 优化版 Markdown 语法处理
+     * 使用单次遍历处理所有语法，减少正则替换次数
+     */
+    processContentOptimized(htmlContent: string): string {
+        // 将内容分割为段落处理
+        const lines = htmlContent.split('\n');
+        const result: string[] = [];
+
+        for (const line of lines) {
+            if (!line.trim()) {
+                result.push(line);
+                continue;
+            }
+
+            // 处理段落级别的转换
+            const processedLine = this.processLine(line);
+            result.push(processedLine);
+        }
+
+        return result.join('\n');
+    }
+
+    /**
+     * 处理单行内容
+     */
+    private processLine(line: string): string {
+        // 检查是否是图片段落
+        const imgMatch = line.match(/<p>(?=.*!)(?=.*\[)(?=.*\])(?=.*\()(?=.*\)).*<\/p>/);
+        if (imgMatch) {
+            return this.processImage(line);
+        }
+
+        // 检查是否是标题
+        const headerMatch = line.match(/(<span class="stns">)(#{1,6})\s+(.*?)(<\/span>)(?=\s*<\/p>)/);
+        if (headerMatch) {
+            const level = headerMatch[2].length;
+            return `<h${level}>${headerMatch[1]}${headerMatch[3]}${headerMatch[4]}</h${level}>`;
+        }
+
+        // 处理行内格式（粗体、斜体、删除线）
+        return this.processInlineFormatting(line);
+    }
+
+    /**
+     * 处理图片
+     */
+    private processImage(line: string): string {
+        const pattern = /!\[(.*?)\]\((.*?)\)/;
+        const str = line.replace(/<[^>]+>/g, '');
+        const tq = pattern.exec(str);
+        if (tq) {
+            const altText = tq[1];
+            const srcUrl = tq[2];
+
+            // 创建图片容器（居中显示）
+            const imgContainer = document.createElement('div');
+            imgContainer.style.textAlign = 'center';
+            const imgWrapper = document.createElement('div');
+            imgWrapper.style.display = 'inline-block';
+            const img = document.createElement('img');
+            img.alt = altText;
+
+            // 处理图片路径
+            if (/^https?:\/\//.test(srcUrl)) {
+                img.src = srcUrl;
+            } else if (imgnum) {
+                const str1 = imgnum;
+                const str2 = srcUrl;
+                const prefix = str2.substring(0, 3);
+                const index = str1.indexOf(prefix);
+
+                if (index !== -1 && index !== 0 && str1.charAt(index - 1) === '/') {
+                    const firstPart = str1.substring(0, index);
+                    img.src = firstPart + str2;
+                } else {
+                    img.src = str1 + str2;
+                }
+            } else {
+                img.src = srcUrl;
+            }
+
+            imgWrapper.appendChild(img);
+            imgContainer.appendChild(imgWrapper);
+            return imgContainer.outerHTML;
+        }
+        return line;
+    }
+
+    /**
+     * 处理行内格式（粗体、斜体、删除线）
+     */
+    private processInlineFormatting(html: string): string {
+        // 使用单次遍历处理所有行内格式
+        // 优先级：删除线 > 粗体 > 斜体
+
+        // 删除线 ~~text~~
+        html = html.replace(
+            /~~((?:<span[^>]*>.*?<\/span>|\s|<[^>]+>)+)~~/g,
+            '<del>$1</del>'
+        );
+
+        // 粗体 **text**
+        html = html.replace(
+            /\*\*((?:<span[^>]*>.*?<\/span>|\s|<[^>]+>)+)\*\*/g,
+            '<b>$1</b>'
+        );
+        // 粗体 __text__
+        html = html.replace(
+            /__((?:<span[^>]*>.*?<\/span>|\s|<[^>]+>)+)__/g,
+            '<b>$1</b>'
+        );
+
+        // 斜体 *text*（避免匹配粗体）
+        html = html.replace(
+            /(?<![*_])\*(?!\*)((?:<span[^>]*>.*?<\/span>|\s|<[^>]+>)+)\*(?!\*)/g,
+            '<i>$1</i>'
+        );
+        // 斜体 _text_（避免匹配粗体）
+        html = html.replace(
+            /(?<![*_])_(?!_)((?:<span[^>]*>.*?<\/span>|\s|<[^>]+>)+)_(?!_)/g,
+            '<i>$1</i>'
+        );
+
+        return html;
     }
 
     async countWords(text: string): Promise<[number, number, number]> {

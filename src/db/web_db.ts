@@ -1,7 +1,8 @@
 import { requestUrl, RequestUrlParam, moment } from "obsidian";
 import {
     ArticleWords, Word, Phrase, WordsPhrase, Sentence,
-    ExpressionInfo, ExpressionInfoSimple, CountInfo, WordCount, Span
+    ExpressionInfo, ExpressionInfoSimple, CountInfo, WordCount, Span,
+    HeatmapStats
 } from "./interface";
 
 import DbProvider from "./base";
@@ -247,6 +248,32 @@ export class WebDb extends DbProvider {
             let res = await requestUrl(request);
             return res.json;
         } catch (e) { }
+    }
+
+    // 获取热力图数据（远程服务器版本）
+    async getHeatmapData(): Promise<HeatmapStats> {
+        let request: RequestUrlParam = {
+            url: `${this.proto}://${this.host}:${this.port}${this.prefix}/heatmap`,
+            method: "GET",
+            headers: this.baseHeaders,
+        };
+
+        try {
+            let res = await requestUrl(request);
+            return res.json;
+        } catch (e) {
+            console.warn("Error getting heatmap data" + e);
+            // 返回空数据
+            return {
+                totalDays: 0,
+                totalLearned: 0,
+                longestStreak: 0,
+                currentStreak: 0,
+                data: [],
+                startDate: moment().format("YYYY-MM-DD"),
+                endDate: moment().format("YYYY-MM-DD"),
+            };
+        }
     }
 
     async importDB() { }

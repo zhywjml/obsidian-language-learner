@@ -71,7 +71,12 @@
       "Bash(git remote:*)",
       "Bash(git config:*)",
       "Bash(cd:*)",
-      "WebFetch(domain:ds-restful-api-bj-prod.oss-cn-beijing.aliyuncs.com)"
+      "WebFetch(domain:ds-restful-api-bj-prod.oss-cn-beijing.aliyuncs.com)",
+      "Bash(git tag:*)",
+      "Bash(ls -lh *.js *.css)",
+      "Bash(ls -la *.js)",
+      "Bash(dir *.js /b)",
+      "Bash(git reset:*)"
     ]
   }
 }

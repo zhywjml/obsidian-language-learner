@@ -77,8 +77,27 @@ interface WordCount {
     accumulated: number[];
 }
 
+// 热力图数据点：日期和学习数量
+interface HeatmapData {
+    date: string;        // 格式: YYYY-MM-DD
+    count: number;       // 当日学习数量
+    level: number;       // 强度等级 0-4
+}
+
+// 热力图统计信息（简化版）
+interface HeatmapStats {
+    totalDays: number;           // 总天数
+    totalLearned: number;        // 总学习数
+    longestStreak: number;       // 最长连续学习天数
+    currentStreak: number;       // 当前连续学习天数
+    data: HeatmapData[];         // 热力图数据
+    startDate: string;           // 开始日期
+    endDate: string;             // 结束日期
+}
+
 
 export type {
     ArticleWords, Word, Phrase, WordsPhrase, Sentence,
-    ExpressionInfo, ExpressionInfoSimple, CountInfo, WordCount, Span
+    ExpressionInfo, ExpressionInfoSimple, CountInfo, WordCount, Span,
+    HeatmapData, HeatmapStats
 };

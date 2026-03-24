@@ -107,7 +107,7 @@ import { MarkdownRenderer, Platform } from "obsidian";
 import PluginType from "@/plugin";
 import { t } from "@/lang/helper";
 import { useEvent } from "@/utils/use";
-import { debounce } from "@/utils/helpers";
+import { debounce, runWhenIdle } from "@/utils/helpers";
 import store from "@/store";
 import { ReadingView } from "./ReadingView";
 import CountBar from "./CountBar.vue";
@@ -195,8 +195,11 @@ if (plugin.settings.word_count) {
     watch(
         [countChange],
         async () => {
-            [unknown.value, learn.value, ignore.value] =
-                await plugin.parser.countWords(article.join("\n"));
+            // 使用 runWhenIdle 延迟非关键统计，优先保证阅读流畅度
+            runWhenIdle(async () => {
+                [unknown.value, learn.value, ignore.value] =
+                    await plugin.parser.countWords(article.join("\n"));
+            }, 1000); // 1秒超时
         },
         { immediate: true }
     );

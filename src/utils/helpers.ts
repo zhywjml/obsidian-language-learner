@@ -39,3 +39,17 @@ export function debounce<T extends (...args: any[]) => any>(
         }, delay);
     };
 }
+
+/**
+ * 使用 requestIdleCallback 或 setTimeout 延迟执行
+ * 用于非关键任务的延迟处理
+ * @param callback 要执行的函数
+ * @param timeout 超时时间（毫秒）
+ */
+export function runWhenIdle(callback: () => void, timeout?: number): void {
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        window.requestIdleCallback(callback, { timeout });
+    } else {
+        setTimeout(callback, timeout || 1);
+    }
+}

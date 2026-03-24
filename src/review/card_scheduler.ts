@@ -17,12 +17,12 @@ export class CardScheduler {
     /**
      * 生成今日复习队列
      */
-    async generateDailyQueue(date?: string): Promise<DailyQueue> {
+    async generateDailyQueue(date?: string, force?: boolean): Promise<DailyQueue> {
         const targetDate = date || new Date().toISOString().split('T')[0];
 
-        // 检查是否已生成
+        // 检查是否已生成 (unless force=true)
         const existing = await this.db.getDailyQueue(targetDate);
-        if (existing) {
+        if (existing && !force) {
             return existing;
         }
 
@@ -74,6 +74,9 @@ export class CardScheduler {
             // 只导入学习中及以上的单词
             if (expr.status < 1) continue;
 
+            // 获取第一个例句（如果有）
+            const firstSentence = expr.sentences && expr.sentences.length > 0 ? expr.sentences[0] : null;
+
             // 创建单词卡片
             await this.db.addCard({
                 type: "word",
@@ -81,6 +84,8 @@ export class CardScheduler {
                 back: expr.meaning || "",
                 word: expr.expression,
                 meaning: expr.meaning,
+                sentence: firstSentence ? firstSentence.text : undefined,
+                translation: firstSentence ? firstSentence.trans : undefined,
                 interval: 0,
                 easeFactor: 2.5,
                 repetitions: 0,
@@ -94,6 +99,11 @@ export class CardScheduler {
             });
 
             imported++;
+        }
+
+        // If we imported cards, regenerate today's queue to include them
+        if (imported > 0) {
+            await this.generateDailyQueue(undefined, true);
         }
 
         return imported;
@@ -150,17 +160,18 @@ export class CardScheduler {
         reviewCompleted: number;
     }> {
         const targetDate = date || new Date().toISOString().split('T')[0];
-        const queue = await this.db.getDailyQueue(targetDate);
 
+        // Get or generate queue
+        let queue = await this.db.getDailyQueue(targetDate);
         if (!queue) {
-            return { newTotal: 0, newCompleted: 0, reviewTotal: 0, reviewCompleted: 0 };
+            queue = await this.generateDailyQueue(targetDate);
         }
 
         return {
             newTotal: queue.newCards.length,
-            newCompleted: queue.newCards.filter(c => queue.completed.includes(c.id)).length,
+            newCompleted: queue.newCards.filter(c => queue!.completed.includes(c.id)).length,
             reviewTotal: queue.reviewCards.length,
-            reviewCompleted: queue.reviewCards.filter(c => queue.completed.includes(c.id)).length
+            reviewCompleted: queue.reviewCards.filter(c => queue!.completed.includes(c.id)).length
         };
     }
 }
