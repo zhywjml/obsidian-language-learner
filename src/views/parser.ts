@@ -8,10 +8,80 @@ import { imgnum } from "@/plugin";
 
 import { Phrase, Word } from "@/db/interface";
 import Plugin from "@/plugin";
+import { hashString } from "@/utils/helpers";
+import { getParseWorker, disposeParseWorker } from "@/utils/parseWorker";
 
 // 单词状态映射：索引 -> CSS类名
 const STATUS_MAP = ["ignore", "learning", "familiar", "known", "learned"];
 type AnyNode = Root | Content | Content[];
+
+/**
+ * 解析结果缓存
+ * key: 文章内容的哈希值
+ * value: 解析后的HTML
+ */
+const parseCache = new Map<string, string>();
+
+/**
+ * 获取缓存的解析结果
+ */
+export function getCachedParseResult(text: string): string | null {
+    const hash = hashString(text);
+    return parseCache.get(hash) || null;
+}
+
+/**
+ * 缓存解析结果
+ */
+export function cacheParseResult(text: string, html: string): void {
+    const hash = hashString(text);
+    parseCache.set(hash, html);
+
+    // 限制缓存大小，防止内存泄漏
+    if (parseCache.size > 100) {
+        const firstKey = parseCache.keys().next().value;
+        parseCache.delete(firstKey);
+    }
+}
+
+/**
+ * 清除解析缓存
+ */
+export function clearParseCache(): void {
+    parseCache.clear();
+}
+
+// AST 解析结果缓存
+const astCache = new Map<string, Root>();
+
+/**
+ * 获取缓存的 AST
+ */
+export function getCachedAST(text: string): Root | null {
+    const hash = hashString(text);
+    return astCache.get(hash) || null;
+}
+
+/**
+ * 缓存 AST
+ */
+export function cacheAST(text: string, ast: Root): void {
+    const hash = hashString(text);
+    astCache.set(hash, ast);
+
+    // 限制缓存大小
+    if (astCache.size > 50) {
+        const firstKey = astCache.keys().next().value;
+        astCache.delete(firstKey);
+    }
+}
+
+/**
+ * 清除 AST 缓存
+ */
+export function clearASTCache(): void {
+    astCache.clear();
+}
 
 /**
  * 文本解析器
@@ -43,13 +113,79 @@ export class TextParser {
 
     /**
      * 解析文本为 HTML
+     * 使用缓存避免重复解析
      * @param data 文本内容
+     * @param options 解析选项
      */
-    async parse(data: string) {
+    async parse(data: string, options?: { useWorker?: boolean }): Promise<string> {
+        // 检查缓存
+        const cached = getCachedParseResult(data);
+        if (cached) {
+            return cached;
+        }
+
+        // 如果启用 Worker 且文本较长，使用 Worker 解析
+        if (options?.useWorker && data.length > 2000) {
+            try {
+                const html = await this.parseWithWorker(data);
+                cacheParseResult(data, html);
+                return html;
+            } catch (err) {
+                console.warn("[TextParser] Worker parse failed, falling back to main thread:", err);
+                // 继续执行主线程解析
+            }
+        }
+
         // 先处理 Markdown 语法（在原始文本上处理）
         let processedData = this.preprocessMarkdown(data.trim());
         let newHTML = await this.text2HTML(processedData);
         let html = this.processContent(newHTML);
+
+        // 缓存结果
+        cacheParseResult(data, html);
+
+        return html;
+    }
+
+    /**
+     * 使用 Web Worker 解析文本
+     */
+    private async parseWithWorker(data: string): Promise<string> {
+        // 预处理 Markdown
+        let processedData = this.preprocessMarkdown(data.trim());
+
+        // 获取单词和短语数据
+        this.pIdx = 0;
+        this.words.clear();
+
+        this.phrases = (
+            await this.plugin.db.getStoredWords({
+                article: processedData.toLowerCase(),
+                words: [],
+            })
+        ).phrases;
+
+        // 提取单词列表
+        let wordSet: Set<string> = new Set();
+        // 简单提取单词（基于空格和标点分割）
+        const tokens = processedData.split(/[\s\.,!?;:]+/);
+        for (const token of tokens) {
+            const clean = token.trim().toLowerCase();
+            if (clean && /^[a-z]+$/.test(clean)) {
+                wordSet.add(clean);
+            }
+        }
+
+        // 查询这些单词的 status
+        let stored = await this.plugin.db.getStoredWords({
+            article: "",
+            words: [...wordSet],
+        });
+
+        // 使用 Worker 解析
+        const worker = getParseWorker();
+        const html = await worker.parse(processedData, stored.words, this.phrases);
+
         return html;
     }
 
@@ -59,9 +195,10 @@ export class TextParser {
      */
     private preprocessMarkdown(text: string): string {
         // 处理 Obsidian 图片 wikilink 格式: ![[image.jpg]] 转换为 ![image](image.jpg)
+        // 注意：转换后的图片前后需要空行，以确保正确分段
         text = text.replace(/!\[\[([^\]|]+)\]\]/g, (match, path) => {
             const filename = path.split('/').pop();
-            return `![${filename}](${path})`;
+            return `\n\n![${filename}](${path})\n\n`;
         });
 
         // 处理 Obsidian wikilink 格式（非图片）: [[link]] 或 [[link|text]]
@@ -99,15 +236,23 @@ export class TextParser {
                     // 网络图片直接使用
                     img.src = srcUrl;
                 } else if (imgnum) {
-                    // 本地图片：智能合并 vault 路径和图片相对路径
-                    const prefix = srcUrl.substring(0, 3);
-                    const index = imgnum.indexOf(prefix);
-                    if (index !== -1 && index !== 0 && imgnum.charAt(index - 1) === '/') {
+                    // 本地图片：使用 Obsidian 的资源路径格式
+                    // 参考项目的路径拼接算法：
+                    // 1. 提取 srcUrl 的前3个字符作为前缀
+                    // 2. 在 imgnum 中查找该前缀
+                    // 3. 如果找到且前面是'/'，则截断 imgnum 并拼接
+                    const str1 = imgnum;
+                    const str2 = srcUrl;
+                    const prefix = str2.substring(0, 3);
+                    const index = str1.indexOf(prefix);
+
+                    if (index !== -1 && index !== 0 && str1.charAt(index - 1) === '/') {
                         // 找到匹配前缀，截断并拼接
-                        img.src = imgnum.substring(0, index) + srcUrl;
+                        const firstPart = str1.substring(0, index);
+                        img.src = firstPart + str2;
                     } else {
                         // 无匹配前缀，直接拼接
-                        img.src = imgnum + srcUrl;
+                        img.src = str1 + str2;
                     }
                 } else {
                     img.src = srcUrl;
@@ -177,7 +322,13 @@ export class TextParser {
     }
 
     async countWords(text: string): Promise<[number, number, number]> {
-        const ast = this.processor.parse(text);
+        // 尝试使用缓存的 AST
+        let ast = getCachedAST(text);
+        if (!ast) {
+            ast = this.processor.parse(text) as Root;
+            cacheAST(text, ast);
+        }
+
         let wordSet: Set<string> = new Set();
         visit(ast, "WordNode", (word) => {
             let text = toString(word).toLowerCase();
@@ -209,7 +360,12 @@ export class TextParser {
             })
         ).phrases;
 
-        const ast = this.processor.parse(text);
+        // 尝试使用缓存的 AST
+        let ast = getCachedAST(text);
+        if (!ast) {
+            ast = this.processor.parse(text) as Root;
+            cacheAST(text, ast);
+        }
 
         // 获得文章中去重后的单词
         let wordSet: Set<string> = new Set();

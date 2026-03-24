@@ -64,6 +64,21 @@ await esbuild.build({
     outfile: 'main.js',
 }).catch(() => process.exit(1));
 
+// Build Web Worker
+await esbuild.build({
+    entryPoints: ['./src/workers/parse.worker.ts'],
+    bundle: true,
+    format: 'iife',
+    target: 'es2016',
+    logLevel: "info",
+    sourcemap: prod ? false : 'inline',
+    minify: prod ? true : false,
+    outfile: 'parse.worker.js',
+}).catch((err) => {
+    console.warn("Worker build failed:", err);
+    // Worker 构建失败不影响主构建
+});
+
 await esbuild.build({
     entryPoints: ["./src/main.css"],
     outfile: "styles.css",
