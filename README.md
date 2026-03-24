@@ -4,11 +4,21 @@
 
 ### 2026-03-24 (v1.3.1)
 
+**性能优化**
+- 新增解析结果缓存机制，使用内容哈希作为缓存键，避免重复解析相同文章
+- 新增 AST 缓存，在 `parse()` 和 `countWords()` 之间共享解析结果
+- 限制缓存大小（解析结果最多100条，AST最多50条），防止内存泄漏
+- 构建体积优化：移除 ECharts 图表库，主包从 1.3MB 缩减至 462KB
+
 **阅读模式图片渲染**
-- 新增 Obsidian 图片 wikilink 格式解析（`![[image.jpg]]`）
-- 新增 Markdown 图片语法渲染（`![alt](url)`）
-- 支持网络图片和本地图片路径智能处理
+- 修复 Obsidian 图片 wikilink 格式解析（`![[image.jpg]]`）
+- 修复 Markdown 图片语法渲染（`![alt](url)`）
+- 实现智能路径拼接算法，支持网络图片和本地图片路径处理
 - 图片居中显示，优化阅读体验
+
+**功能调整**
+- 暂时移除学习统计功能（热力图、7天学习趋势图）及相关按钮
+- 优化阅读模式文本解析的空行处理，提升渲染稳定性
 
 ### 2026-03-23 (v1.3.0)
 
@@ -87,7 +97,6 @@
 - **离线词典**：支持加载本地 MDict 词典文件（.mdx），无需网络即可查词
 - **生词管理**：数据保存在 Obsidian 中，每个单词/短语支持多条笔记、多条例句
 - **阅读模式**：将每个单词变成可点击按钮，边读边查边记笔记
-- **统计图表**：显示学习进度和单词统计
 - **Anki 导出**：支持将单词导出到 Anki，配合 AnkiConnect 实现闪卡复习
 
 #### 数据存储
@@ -231,7 +240,6 @@ Learn languages with Obsidian!
 - **Offline Dictionary**: Load local MDict dictionary files (.mdx) for offline word lookup
 - **Vocabulary Management**: Store words in Obsidian, each word/phrase supports multiple notes and sentences
 - **Reading Mode**: Convert each word into a clickable button for easy lookup while reading
-- **Statistics**: Display learning progress and word counts
 - **Anki Export**: Export words to Anki for spaced repetition via AnkiConnect
 
 #### Data Storage
@@ -295,7 +303,7 @@ Export learned words to Anki for spaced repetition:
 | :-----: | :----------------------------------------------------------: |
 | v1.0.0  | <img src="image.png" alt="image-20260317191853449" style="zoom: 33%;" /> |
 | v1.0.1  | <img src="image-20260317191853449.png" alt="image-20260317191853449" style="zoom: 33%;" /> |
-| v1.3.1  | <img src="image-20260324103314793.png" alt="image-20260324103314793" style="zoom:33%;" /> |
+| v1.3.1  | <img src="image-20260324103233447.png" alt="image-20260324103233447" style="zoom:33%;" /> |
 
 <p align="center">
   <img src="image-1.png" alt="Word list panel" width="400">
