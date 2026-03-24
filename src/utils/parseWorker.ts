@@ -5,6 +5,9 @@
 
 import { Phrase, Word } from "@/db/interface";
 
+// Worker 代码（内联，避免需要额外的 worker 文件）
+const WORKER_CODE = `(()=>{var x=["ignore","learning","familiar","known","learned"];function p(t){return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;")}function y(t){let s=[],a=/([a-zA-Z]+)|(\\s+)|([0-9\\u4e00-\\u9fa5]+)|(.)/g,e;for(;(e=a.exec(t))!==null;)e[1]?s.push({type:"word",text:e[1]}):e[2]?s.push({type:"whitespace",text:e[2]}):e[3]?s.push({type:"other",text:e[3]}):s.push({type:"punctuation",text:e[4]});return s}function f(t,s){if(t.type==="whitespace")return t.text;if(t.type==="other")return'<span class="other">'+p(t.text)+"</span>";if(t.type==="punctuation")return p(t.text);let a=t.text.toLowerCase();return'<span class="word "+(s.has(a)?x[s.get(a)]:"new")+">"+p(t.text)+"</span>"}function m(t,s,a){let e=y(t),i=[],n=0;for(;n<e.length;){let o=e[n],r=!1,l=Math.min(10,e.length-n);for(let c=l;c>1;c--){let u=e.slice(n,n+c),h=u.filter(g=>g.type==="word").map(g=>g.text.toLowerCase()).join(" ");if(a.has(h)){let g=u.map(d=>f(d,s)).join("");i.push('<span class="phrase learning">'+g+"</span>"),n+=c,r=!0;break}}r||(i.push(f(o,s)),n++)}return i.join("")}function w(t){let s=t.match(/^!\\[(.*?)\\]\\((.*?)\\)$/);if(!s)return"<p>"+p(t)+"</p>";let a=p(s[1]),e=p(s[2]);return'<div style="text-align:center"><div style="display:inline-block"><img alt="'+a+'" src="'+e+'"></div></div>'}function S(t,s,a){let e=new Map;for(let r of s)e.set(r.text.toLowerCase(),r.status);let i=new Set;for(let r of a)i.add(r.text.toLowerCase());let n=t.split(/\\n\\n+/),o=[];for(let r of n){if(!r.trim())continue;if(r.match(/^!\\[.*?\\]\\(.*?\\)$/)){o.push(w(r));continue}let l=r.match(/^(#{1,6})\\s+(.+)$/);if(l){let u=l[1].length,h=m(l[2],e,i);o.push("<h"+u+'><span class="stns">'+h+"</span></h"+u+">");continue}let c=m(r,e,i);o.push("<p>"+c+"</p>")}return o.join("")}self.onmessage=function(t){let{id:s,text:a,words:e,phrases:i}=t.data;try{let n=S(a,e,i),o={type:"PARSE_RESPONSE",id:s,html:n};self.postMessage(o)}catch(n){let o={type:"PARSE_RESPONSE",id:s,html:"",error:n instanceof Error?n.message:String(n)};self.postMessage(o)}};})();`;
+
 // Worker 消息类型
 interface ParseRequestMessage {
     type: "PARSE_REQUEST";
@@ -43,15 +46,8 @@ export class ParseWorkerManager {
         if (this.fallbackMode) return false;
 
         try {
-            // 尝试加载 Worker 代码
-            const workerCode = await this.loadWorkerCode();
-            if (!workerCode) {
-                this.fallbackMode = true;
-                return false;
-            }
-
-            // 使用 Blob URL 创建 Worker
-            const blob = new Blob([workerCode], { type: "application/javascript" });
+            // 使用内联的 Worker 代码
+            const blob = new Blob([WORKER_CODE], { type: "application/javascript" });
             this.workerUrl = URL.createObjectURL(blob);
             this.worker = new Worker(this.workerUrl);
 
@@ -64,63 +60,6 @@ export class ParseWorkerManager {
             this.fallbackMode = true;
             return false;
         }
-    }
-
-    /**
-     * 加载 Worker 代码
-     * 尝试从多个来源加载
-     */
-    private async loadWorkerCode(): Promise<string | null> {
-        // 方法1: 尝试动态导入 Worker 文件（如果构建工具支持）
-        try {
-            // @ts-ignore - 动态导入 Worker 代码
-            const workerModule = await import("@/workers/parse.worker.ts");
-            if (workerModule && workerModule.default) {
-                return workerModule.default;
-            }
-        } catch {
-            // 忽略错误，尝试其他方法
-        }
-
-        // 方法2: 使用 fetch 加载 Worker 文件（需要插件目录中的 worker 文件）
-        try {
-            // 在 Obsidian 环境中，尝试从插件目录加载
-            const pluginDir = this.getPluginDir();
-            if (pluginDir) {
-                const response = await fetch(`${pluginDir}/parse.worker.js`);
-                if (response.ok) {
-                    return await response.text();
-                }
-            }
-        } catch {
-            // 忽略错误
-        }
-
-        // 方法3: 返回 null，使用 fallback
-        return null;
-    }
-
-    /**
-     * 获取插件目录
-     */
-    private getPluginDir(): string | null {
-        try {
-            // @ts-ignore - Obsidian API
-            const vault = window.app?.vault;
-            if (vault && vault.adapter) {
-                // 尝试多种方式获取路径
-                // @ts-ignore
-                const basePath = vault.adapter.getBasePath?.() || vault.adapter.basePath;
-                if (basePath) {
-                    // 构造插件目录路径
-                    const pluginDir = `${basePath}/.obsidian/plugins/obsidian-language-learner`;
-                    return pluginDir;
-                }
-            }
-        } catch {
-            // 忽略错误
-        }
-        return null;
     }
 
     /**
