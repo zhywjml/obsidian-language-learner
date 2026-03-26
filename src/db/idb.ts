@@ -39,6 +39,8 @@ interface Expression {
     tags: Set<string>,
     sentences: Set<number>,
     connections: Map<string, string>,
+    createdDate: string,    // YYYY-MM-DD 格式，创建时设置，不可变
+    modifiedDate: string,   // YYYY-MM-DD 格式，每次更新时刷新
 }
 interface Sentence {
     id?: number;

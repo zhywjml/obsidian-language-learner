@@ -32,6 +32,8 @@ interface InternalExpression {
     tags: Set<string>;
     sentences: Set<number>;
     connections: Map<string, string>;
+    createdDate: string;
+    modifiedDate: string;
 }
 
 /**
@@ -60,6 +62,7 @@ export function serializeExpression(
  * @returns IndexedDB 内部表达式格式
  */
 export function deserializeExpression(json: JsonExpression): InternalExpression {
+    const now = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     return {
         id: json.id,
         expression: json.expression,
@@ -70,7 +73,9 @@ export function deserializeExpression(json: JsonExpression): InternalExpression 
         notes: json.notes || [],
         tags: new Set(json.tags || []),
         sentences: new Set(json.sentenceIds || []),
-        connections: new Map()
+        connections: new Map(),
+        createdDate: (json as any).createdDate || now,
+        modifiedDate: (json as any).modifiedDate || now,
     };
 }
 

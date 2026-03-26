@@ -48,6 +48,9 @@ interface ExpressionInfo {
     tags: string[];
     notes: string[];
     sentences: Sentence[];
+    // 日期追踪字段
+    createdDate: string;      // YYYY-MM-DD 格式，创建时设置，不可变
+    modifiedDate: string;     // YYYY-MM-DD 格式，每次更新时刷新
 }
 
 interface ExpressionInfoSimple {
@@ -59,6 +62,9 @@ interface ExpressionInfoSimple {
     note_num: number;
     sen_num: number;
     date: number;
+    // 日期追踪字段
+    createdDate: string;
+    modifiedDate: string;
 }
 
 interface CountInfo {

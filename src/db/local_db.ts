@@ -133,6 +133,8 @@ export class LocalDb extends DbProvider {
             notes: expr.notes,
             sentences,
             tags: [...expr.tags.keys()],
+            createdDate: expr.createdDate,
+            modifiedDate: expr.modifiedDate,
         };
 
     }
@@ -154,7 +156,9 @@ export class LocalDb extends DbProvider {
                 tags: [...v.tags.keys()],
                 sen_num: v.sentences.size,
                 note_num: v.notes.length,
-                date: v.date
+                date: v.date,
+                createdDate: v.createdDate,
+                modifiedDate: v.modifiedDate,
             };
         });
     }
@@ -180,6 +184,8 @@ export class LocalDb extends DbProvider {
                 notes: expr.notes,
                 sentences,
                 tags: [...expr.tags.keys()],
+                createdDate: expr.createdDate,
+                modifiedDate: expr.modifiedDate,
             });
         }
         return res;
@@ -200,6 +206,8 @@ export class LocalDb extends DbProvider {
                 note_num: expr.notes.length,
                 sen_num: expr.sentences.size,
                 date: expr.date,
+                createdDate: expr.createdDate,
+                modifiedDate: expr.modifiedDate,
             };
         });
 
@@ -223,6 +231,7 @@ export class LocalDb extends DbProvider {
             }
         }
 
+        const now = moment().format("YYYY-MM-DD");
         let updatedWord = {
             expression: payload.expression,
             meaning: payload.meaning,
@@ -232,7 +241,9 @@ export class LocalDb extends DbProvider {
             sentences,
             tags: new Set<string>(payload.tags),
             connections: new Map<string, string>(),
-            date: moment().unix()
+            date: moment().unix(),
+            createdDate: stored?.createdDate || payload.createdDate || now,
+            modifiedDate: now,
         };
         if (stored) {
             await this.idb.expressions.update(stored.id, updatedWord);
@@ -260,7 +271,7 @@ export class LocalDb extends DbProvider {
     }
 
     async postIgnoreWords(payload: string[]): Promise<void> {
-
+        const now = moment().format("YYYY-MM-DD");
         await this.idb.expressions.bulkPut(
             payload.map(expr => {
                 return {
@@ -272,7 +283,9 @@ export class LocalDb extends DbProvider {
                     sentences: new Set(),
                     tags: new Set(),
                     connections: new Map<string, string>(),
-                    date: moment().unix()
+                    date: moment().unix(),
+                    createdDate: now,
+                    modifiedDate: now,
                 };
             })
         );

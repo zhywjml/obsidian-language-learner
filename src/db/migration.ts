@@ -159,7 +159,9 @@ export class DataMigration {
                     t: section === 'words' ? 'WORD' : 'PHRASE',
                     notes: [],
                     sentences: [],
-                    tags: []
+                    tags: [],
+                    createdDate: moment().format('YYYY-MM-DD'),
+                    modifiedDate: moment().format('YYYY-MM-DD'),
                 };
                 inNotes = false;
                 inSentences = false;
