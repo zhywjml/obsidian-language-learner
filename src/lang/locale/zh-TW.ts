@@ -287,4 +287,15 @@ export default {
     "Algorithm Parameters": "算法參數",
     "Easy Bonus": "簡單獎勵係數",
     "Hard Interval": "困難間隔係數",
+
+    // Heatmap Panel
+    "Learning Heatmap": "學習熱力圖",
+    "Total Words": "總單詞數",
+    "Current Streak": "當前連續",
+    "Longest Streak": "最長連續",
+    "Less": "少",
+    "More": "多",
+    "No words recorded on this date": "該日期沒有記錄單詞",
+    "Created": "創建",
+    "Modified": "修改",
 };

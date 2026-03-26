@@ -352,4 +352,15 @@ export default {
     "Algorithm Parameters": "Algorithm Parameters",
     "Easy Bonus": "Easy Bonus",
     "Hard Interval": "Hard Interval",
+
+    // Heatmap Panel
+    "Learning Heatmap": "Learning Heatmap",
+    "Total Words": "Total Words",
+    "Current Streak": "Current Streak",
+    "Longest Streak": "Longest Streak",
+    "Less": "Less",
+    "More": "More",
+    "No words recorded on this date": "No words recorded on this date",
+    "Created": "Created",
+    "Modified": "Modified",
 };

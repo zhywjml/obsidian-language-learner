@@ -343,4 +343,15 @@ export default {
     "Algorithm Parameters": "算法参数",
     "Easy Bonus": "简单奖励系数",
     "Hard Interval": "困难间隔系数",
+
+    // Heatmap Panel
+    "Learning Heatmap": "学习热力图",
+    "Total Words": "总单词数",
+    "Current Streak": "当前连续",
+    "Longest Streak": "最长连续",
+    "Less": "少",
+    "More": "多",
+    "No words recorded on this date": "该日期没有记录单词",
+    "Created": "创建",
+    "Modified": "修改",
 };
