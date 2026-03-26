@@ -37,7 +37,10 @@ import { t, setLanguage } from "./lang/helper";
 import DbProvider from "./db/base";
 import { WebDb } from "./db/web_db";
 import { LocalDb } from "./db/local_db";
-import { MarkdownDb } from "./db/markdown_db";
+import { JsonSyncDb } from "./db/json_sync_db";
+import { DataMigration } from "./db/migration";
+import { validateJsonFormat, mergeExpressions, mergeSentences, createJsonDataFormat } from "./db/json_serializer";
+import { JsonDataFormat } from "./db/json_format";
 import { TextParser } from "./views/parser";
 import { FrontMatterManager } from "./utils/frontmatter";
 import { MdictEngine, createMdictEngine } from "./dictionary/mdict/engine";
@@ -169,8 +172,36 @@ export default class LanguageLearner extends Plugin {
      * 根据设置选择存储类型
      */
     async initDatabase() {
+        // 检查是否需要从 Markdown 迁移
+        await this.checkAndMigrateMarkdown();
+
         this.db = this.createDatabase(this.settings.storage_type);
         await this.db.open();
+    }
+
+    /**
+     * 检查并迁移 Markdown 数据
+     */
+    private async checkAndMigrateMarkdown(): Promise<void> {
+        const mdPath = "Language Learner/words.md";
+        const jsonPath = this.settings.json_db_path;
+
+        // 检查是否需要迁移
+        const needsMigration = await DataMigration.checkMigrationNeeded(mdPath, jsonPath, this.app.vault);
+
+        if (needsMigration) {
+            console.log("[LanguageLearner] Detected Markdown data, prompting for migration...");
+
+            // 自动执行迁移
+            const result = await DataMigration.migrateMarkdownToJson(mdPath, jsonPath, this.app.vault);
+
+            if (result.success) {
+                new Notice(`数据迁移完成：${result.expressionsMigrated} 个单词已迁移到 JSON 格式`);
+                console.log(`[LanguageLearner] Migration completed: ${result.expressionsMigrated} expressions`);
+            } else {
+                console.error("[LanguageLearner] Migration failed:", result.errors);
+            }
+        }
     }
 
     /**
@@ -178,8 +209,10 @@ export default class LanguageLearner extends Plugin {
      */
     createDatabase(type: StorageType): DbProvider {
         switch (type) {
-            case "markdown":
-                return new MarkdownDb(this, this.settings.md_db_path);
+            case "json":
+                return new JsonSyncDb(this, this.settings.json_db_path, {
+                    syncDebounceMs: this.settings.sync_debounce_ms
+                });
             case "server":
                 return new WebDb(
                     this.settings.host,
@@ -205,6 +238,88 @@ export default class LanguageLearner extends Plugin {
         this.db = this.createDatabase(type);
         await this.db.open();
         this.settings.storage_type = type;
+    }
+
+    /**
+     * 更新 JSON 文件路径
+     * 将旧路径的数据迁移到新路径
+     */
+    async updateJsonPath(newPath: string): Promise<void> {
+        const oldPath = this.settings.json_db_path;
+
+        if (oldPath === newPath) {
+            return;  // 路径相同，无需处理
+        }
+
+        // 检查旧文件是否存在
+        const oldFile = this.app.vault.getAbstractFileByPath(oldPath);
+        if (oldFile instanceof TFile) {
+            // 读取旧文件内容
+            const oldContent = await this.app.vault.read(oldFile);
+            let oldData: JsonDataFormat | null = null;
+
+            try {
+                const parsed = JSON.parse(oldContent);
+                if (validateJsonFormat(parsed)) {
+                    oldData = parsed;
+                }
+            } catch (e) {
+                console.warn("[LanguageLearner] Old file is not valid JSON:", e);
+            }
+
+            // 检查新文件是否已存在
+            const newFile = this.app.vault.getAbstractFileByPath(newPath);
+            if (newFile instanceof TFile && oldData) {
+                // 新文件已存在，合并数据
+                const newContent = await this.app.vault.read(newFile);
+                try {
+                    const newData = JSON.parse(newContent);
+                    if (validateJsonFormat(newData)) {
+                        // 合并表达式和句子
+                        const mergedExpressions = mergeExpressions(
+                            oldData.data.expressions,
+                            newData.data.expressions
+                        );
+                        const mergedSentences = mergeSentences(
+                            oldData.data.sentences,
+                            newData.data.sentences
+                        );
+
+                        // 创建合并后的数据
+                        const mergedData = createJsonDataFormat(mergedExpressions, mergedSentences);
+
+                        // 写入新文件
+                        await this.app.vault.modify(newFile, JSON.stringify(mergedData, null, 2));
+                        console.log("[LanguageLearner] Merged data into new file:", newPath);
+                    }
+                } catch (e) {
+                    console.warn("[LanguageLearner] New file is not valid JSON, overwriting:", e);
+                    // 新文件不是有效 JSON，直接覆盖
+                    await this.app.vault.modify(newFile, oldContent);
+                }
+            } else {
+                // 新文件不存在，创建新文件
+                const parentPath = newPath.substring(0, newPath.lastIndexOf('/'));
+                if (parentPath) {
+                    const folder = this.app.vault.getAbstractFileByPath(parentPath);
+                    if (!folder) {
+                        await this.app.vault.createFolder(parentPath);
+                    }
+                }
+                await this.app.vault.create(newPath, oldContent);
+                console.log("[LanguageLearner] Created new JSON file at:", newPath);
+            }
+        }
+
+        // 更新设置
+        this.settings.json_db_path = newPath;
+
+        // 重新初始化数据库
+        if (this.db) {
+            this.db.close();
+        }
+        this.db = this.createDatabase("json");
+        await this.db.open();
     }
 
     // async replacePDF() {
@@ -747,13 +862,41 @@ export default class LanguageLearner extends Plugin {
             DEFAULT_SETTINGS
         );
         let data = (await this.loadData()) || {};
+
+        // 首先处理旧版本迁移（在赋值之前）
+        // 如果 storage_type 是 "markdown"，迁移到 "json"
+        if (data.storage_type === "markdown") {
+            data.storage_type = "json";
+            // 如果有旧的 md_db_path，迁移到 json_db_path
+            if (data.md_db_path) {
+                data.json_db_path = data.md_db_path.replace(/\.md$/, ".json");
+            }
+            // 删除旧字段
+            delete data.md_db_path;
+        }
+
+        // 验证 storage_type 是否有效（必须明确是有效值之一）
+        const validStorageTypes = ["json", "indexeddb", "server"];
+        if (!validStorageTypes.includes(data.storage_type)) {
+            data.storage_type = "json";  // 使用默认值
+        }
+
+        // 确保 json_db_path 和 sync_debounce_ms 有默认值
+        if (typeof data.json_db_path !== 'string' || !data.json_db_path) {
+            data.json_db_path = DEFAULT_SETTINGS.json_db_path;
+        }
+        if (typeof data.sync_debounce_ms !== 'number') {
+            data.sync_debounce_ms = DEFAULT_SETTINGS.sync_debounce_ms;
+        }
+
+        // 从 data 复制到 settings
         for (let key in DEFAULT_SETTINGS) {
             let k = key as keyof typeof DEFAULT_SETTINGS;
-            if (data[k] === undefined) {
+            if (data[k] === undefined || data[k] === null) {
                 continue;
             }
 
-            if (typeof DEFAULT_SETTINGS[k] === "object") {
+            if (typeof DEFAULT_SETTINGS[k] === "object" && DEFAULT_SETTINGS[k] !== null) {
                 Object.assign(settings[k], data[k]);
             } else {
                 settings[k] = data[k];
@@ -776,7 +919,8 @@ export default class LanguageLearner extends Plugin {
             }
         }
 
-        (this.settings as any) = settings;
+        // 赋值给 this.settings
+        this.settings = settings as MyPluginSettings;
 
         // 设置插件界面语言
         setLanguage(settings.ui_language || "zh");

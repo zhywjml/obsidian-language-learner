@@ -16,7 +16,6 @@ import { App, Notice, PluginSettingTab, Setting, Modal, moment, debounce } from 
 
 import { WebDb } from "./db/web_db";
 import { LocalDb } from "./db/local_db";
-import { MarkdownDb } from "./db/markdown_db";
 import LanguageLearner from "./plugin";
 import { t, setLanguage } from "./lang/helper";
 import { WarningModal, OpenFileModal, MarkdownFileSuggestModal, MdictFileSuggestModal } from "./modals"
@@ -24,14 +23,15 @@ import { dicts } from "@dict/list";
 import store from "./store";
 
 // 存储类型
-export type StorageType = "indexeddb" | "markdown" | "server";
+export type StorageType = "indexeddb" | "json" | "server";
 
 export interface MyPluginSettings {
     // ui language
     ui_language: "zh" | "en";
     // storage
     storage_type: StorageType;
-    md_db_path: string;  // Markdown 文件存储路径
+    json_db_path: string;  // JSON 文件存储路径
+    sync_debounce_ms: number;  // 同步防抖延迟
     // server
     use_server: boolean;
     host: string,
@@ -82,8 +82,9 @@ export const DEFAULT_SETTINGS: MyPluginSettings = {
     // ui language
     ui_language: "zh",
     // storage
-    storage_type: "markdown",  // 默认使用 Markdown 文件（支持 Obsidian Sync）
-    md_db_path: "Language Learner/words.md",  // Markdown 文件路径
+    storage_type: "json",  // 默认使用 JSON 同步（支持 Obsidian Sync）
+    json_db_path: "Language Learner/words.json",  // JSON 文件路径
+    sync_debounce_ms: 1000,  // 同步防抖延迟（毫秒）
     // server
     use_server: false,
     port: 8086,
@@ -166,13 +167,15 @@ export class SettingTab extends PluginSettingTab {
     uiLanguageSettings(containerEl: HTMLElement) {
         containerEl.createEl("h3", { text: t("Plugin Language") });
 
+        const uiLanguage = this.plugin.settings.ui_language || DEFAULT_SETTINGS.ui_language;
+
         new Setting(containerEl)
             .setName(t("Interface Language"))
             .setDesc(t("Choose the language for plugin interface"))
             .addDropdown(dropdown => dropdown
                 .addOption("zh", t("Chinese"))
                 .addOption("en", t("English"))
-                .setValue(this.plugin.settings.ui_language)
+                .setValue(uiLanguage)
                 .onChange(async (value: "zh" | "en") => {
                     this.plugin.settings.ui_language = value;
                     setLanguage(value);
@@ -186,14 +189,19 @@ export class SettingTab extends PluginSettingTab {
     storageSettings(containerEl: HTMLElement) {
         containerEl.createEl("h3", { text: t("Data Storage") });
 
+        // 确保 storage_type 有有效值
+        const storageType = this.plugin.settings.storage_type || "json";
+        const validStorageTypes = ["json", "indexeddb", "server"];
+        const safeStorageType = validStorageTypes.includes(storageType) ? storageType : "json";
+
         new Setting(containerEl)
             .setName(t("Storage Type"))
-            .setDesc(t("Markdown file supports Obsidian Sync and can be viewed/edited directly"))
+            .setDesc(t("JSON file supports Obsidian Sync with high performance"))
             .addDropdown(dropdown => dropdown
-                .addOption("indexeddb", t("IndexedDB (Local)"))
-                .addOption("markdown", t("Markdown File (Recommended)"))
+                .addOption("json", t("JSON File (Recommended)"))
+                .addOption("indexeddb", t("IndexedDB (Local Only)"))
                 .addOption("server", t("Remote Server"))
-                .setValue(this.plugin.settings.storage_type)
+                .setValue(safeStorageType)
                 .onChange(async (value: StorageType) => {
                     this.plugin.settings.storage_type = value;
                     await this.plugin.switchStorage(value);
@@ -202,53 +210,45 @@ export class SettingTab extends PluginSettingTab {
                 })
             );
 
-        // Markdown 文件路径设置
-        if (this.plugin.settings.storage_type === "markdown") {
+        // JSON 文件路径设置
+        if (safeStorageType === "json") {
             new Setting(containerEl)
-                .setName(t("Markdown File Path"))
-                .setDesc(t("Path relative to vault root, e.g. 'Language Learner/words.md'"))
+                .setName(t("JSON File Path"))
+                .setDesc(t("Path relative to vault root, e.g. 'Language Learner/words.json'"))
                 .addText(text => text
-                    .setValue(this.plugin.settings.md_db_path)
-                    .setPlaceholder("Language Learner/words.md")
+                    .setValue(this.plugin.settings.json_db_path || DEFAULT_SETTINGS.json_db_path)
+                    .setPlaceholder("Language Learner/words.json")
                     .onChange(debounce(async (path) => {
                         if (path.trim()) {
-                            this.plugin.settings.md_db_path = path.trim();
-                            await this.plugin.switchStorage("markdown");
+                            await this.plugin.updateJsonPath(path.trim());
                             await this.plugin.saveSettings();
                         }
                     }, 1000, true))
-                )
-                .addButton(button => button
-                    .setButtonText("选择文件")
-                    .onClick(() => {
-                        new MarkdownFileSuggestModal(this.app, async (file) => {
-                            this.plugin.settings.md_db_path = file.path;
-                            await this.plugin.switchStorage("markdown");
-                            await this.plugin.saveSettings();
-                            this.display(); // 刷新设置页面
-                        }).open();
-                    })
                 );
 
-            // 迁移按钮
+            // 同步防抖设置
             new Setting(containerEl)
-                .setName(t("Migrate Data"))
-                .setDesc(t("Migrate from IndexedDB to Markdown file"))
-                .addButton(button => button
-                    .setButtonText(t("Migrate"))
-                    .onClick(async () => {
-                        await this.migrateFromIndexedDB();
-                    })
+                .setName(t("Sync Debounce"))
+                .setDesc(t("Delay before syncing to JSON file (ms)"))
+                .addText(text => text
+                    .setValue(String(this.plugin.settings.sync_debounce_ms || DEFAULT_SETTINGS.sync_debounce_ms))
+                    .onChange(debounce(async (value) => {
+                        const ms = parseInt(value);
+                        if (!isNaN(ms) && ms >= 100) {
+                            this.plugin.settings.sync_debounce_ms = ms;
+                            await this.plugin.saveSettings();
+                        }
+                    }, 500, true))
                 );
         }
 
         // 服务器设置（当选择 server 时显示）
-        if (this.plugin.settings.storage_type === "server") {
+        if (safeStorageType === "server") {
             new Setting(containerEl)
                 .setName(t("Use https"))
                 .setDesc(t("Be sure your server enabled https"))
                 .addToggle(toggle => toggle
-                    .setValue(this.plugin.settings.use_https)
+                    .setValue(this.plugin.settings.use_https ?? false)
                     .onChange(async (use_https) => {
                         this.plugin.settings.use_https = use_https;
                         await this.plugin.saveSettings();
@@ -262,7 +262,7 @@ export class SettingTab extends PluginSettingTab {
                     .setDesc(t("Input your api-key for authentication"))
                     .addText((text) =>
                         text
-                            .setValue(this.plugin.settings.api_key)
+                            .setValue(this.plugin.settings.api_key || "")
                             .onChange(debounce(async (api_key) => {
                                 this.plugin.settings.api_key = api_key;
                                 await this.plugin.saveSettings();
@@ -275,7 +275,7 @@ export class SettingTab extends PluginSettingTab {
                 .setDesc(t("Your server's host name"))
                 .addText((text) =>
                     text
-                        .setValue(this.plugin.settings.host)
+                        .setValue(this.plugin.settings.host || "127.0.0.1")
                         .onChange(debounce(async (host) => {
                             this.plugin.settings.host = host;
                             await this.plugin.saveSettings();
@@ -287,7 +287,7 @@ export class SettingTab extends PluginSettingTab {
                 .setDesc(t("It should be same as 'PORT' variable in .env file of server"))
                 .addText((text) =>
                     text
-                        .setValue(String(this.plugin.settings.port))
+                        .setValue(String(this.plugin.settings.port || 8086))
                         .onChange(debounce(async (port) => {
                             let p = Number(port);
                             if (!isNaN(p)) {
@@ -320,101 +320,6 @@ export class SettingTab extends PluginSettingTab {
                     await this.plugin.db.exportDB();
                     new Notice("Exported");
                 })
-            );
-    }
-
-    backendSettings(containerEl: HTMLElement) {
-        // 保留此方法以兼容旧设置，但不再在 display 中调用
-        // 已由 storageSettings 替代
-        new Setting(containerEl)
-            .setName(t("Use Server"))
-            .setDesc(t("Use a seperated backend server"))
-            .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.use_server)
-                .onChange(async (use_server) => {
-                    this.plugin.settings.use_server = use_server;
-                    if (use_server) {
-                        this.plugin.db.close();
-                        this.plugin.db = new WebDb(
-                            this.plugin.settings.host,
-                            this.plugin.settings.port,
-                            this.plugin.settings.use_https,
-                            this.plugin.settings.api_key,
-                        );
-                    } else {
-                        this.plugin.db = new LocalDb(this.plugin);
-                        await this.plugin.db.open();
-                    }
-                    await this.plugin.saveSettings();
-                    this.display();
-                })
-            );
-
-        new Setting(containerEl)
-            .setName(t("Use https"))
-            .setDesc(t("Be sure your server enabled https"))
-            .addToggle(toggle => toggle
-                .setDisabled(this.plugin.settings.use_server)
-                .setValue(this.plugin.settings.use_https)
-                .onChange(async (use_https) => {
-                    this.plugin.settings.use_https = use_https;
-                    await this.plugin.saveSettings();
-                    this.display();
-                })
-            );
-
-        this.plugin.settings.use_https && new Setting(containerEl)
-            .setName(t("Api Key"))
-            .setDesc(
-                t("Input your api-key for authentication")
-            )
-            .addText((text) =>
-                text
-                    .setValue(this.plugin.settings.api_key)
-                    .setDisabled(this.plugin.settings.use_server)
-                    .onChange(debounce(async (api_key) => {
-                        this.plugin.settings.api_key = api_key;
-                        await this.plugin.saveSettings();
-                        this.display();
-                    }, 500, true))
-            );
-
-        new Setting(containerEl)
-            .setName(t("Server Host"))
-            .setDesc(
-                t("Your server's host name (like 11.11.11.11 or baidu.com)")
-            )
-            .addText((text) =>
-                text
-                    .setValue(this.plugin.settings.host)
-                    .setDisabled(this.plugin.settings.use_server)
-                    .onChange(debounce(async (host) => {
-                        this.plugin.settings.host = host;
-                        await this.plugin.saveSettings();
-                    }, 500, true))
-            );
-
-        new Setting(containerEl)
-            .setName(t("Server Port"))
-            .setDesc(
-                // t('An integer between 1024-65535. It should be same as "PORT" variable in .env file of server')
-                t('It should be same as "PORT" variable in .env file of server')
-            )
-            .addText((text) =>
-                text
-                    .setDisabled(this.plugin.settings.use_server)
-                    .setValue(String(this.plugin.settings.port))
-                    .onChange(debounce(async (port) => {
-                        let p = Number(port);
-                        // if (!isNaN(p) && p >= 1023 && p <= 65535) {
-                        if (!isNaN(p)) {
-                            this.plugin.settings.port = p;
-                            (this.plugin.db as WebDb).port = p;
-                            await this.plugin.saveSettings();
-                        } else {
-                            new Notice(t("Wrong port format"));
-                        }
-                    }, 500, true))
             );
     }
 
@@ -554,7 +459,7 @@ export class SettingTab extends PluginSettingTab {
             .setName(t("Database Name"))
             .setDesc(t("Reopen DB after changing database name"))
             .addText(text => text
-                .setValue(this.plugin.settings.db_name)
+                .setValue(this.plugin.settings.db_name || DEFAULT_SETTINGS.db_name)
                 .onChange(debounce(async (name) => {
                     this.plugin.settings.db_name = name;
                     this.plugin.saveSettings();
@@ -1011,46 +916,5 @@ export class SettingTab extends PluginSettingTab {
                 })
             );
     }
-
-    /**
-     * 从 IndexedDB 迁移数据到 Markdown 文件
-     */
-    async migrateFromIndexedDB() {
-        const { LocalDb } = await import("./db/local_db");
-        const { MarkdownDb } = await import("./db/markdown_db");
-
-        // 创建临时 IndexedDB 实例读取数据
-        const localDb = new LocalDb(this.plugin);
-        await localDb.open();
-
-        // 获取所有数据
-        const allWords = await localDb.getAllExpressionSimple(false);
-
-        if (allWords.length === 0) {
-            new Notice(t("No data to migrate"));
-            localDb.close();
-            return;
-        }
-
-        // 创建 Markdown 实例
-        const mdDb = new MarkdownDb(this.plugin, this.plugin.settings.md_db_path);
-        await mdDb.open();
-
-        // 迁移数据
-        let count = 0;
-        for (const word of allWords) {
-            const fullWord = await localDb.getExpression(word.expression);
-            if (fullWord) {
-                await mdDb.postExpression(fullWord);
-                count++;
-            }
-        }
-
-        localDb.close();
-        mdDb.close();
-
-        new Notice(`${t("Migration completed")}: ${count} words`);
-    }
-
 }
 

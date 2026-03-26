@@ -1,10 +1,5 @@
 import { t } from "./lang/helper";
 
-// 插件名称
-const dict = {
-    NAME: "Language Learner"
-};
-
 // 鼠标位置（用于弹窗定位）
 type Position = {
     x: number;
@@ -34,7 +29,6 @@ interface EventMap extends GlobalEventHandlersEventMap {
 
 
 
-export { dict };
 export type { EventMap, Position }
 
 
