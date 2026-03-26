@@ -254,6 +254,7 @@ export class DataMigration {
         for (const expr of expressions) {
             const sentenceIds = expr.sentences.map(s => sentenceIdMap.get(s.text) || 0);
 
+            const now = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
             jsonExpressions.push({
                 id: jsonExpressions.length + 1,
                 expression: expr.expression.toLowerCase(),
@@ -261,6 +262,8 @@ export class DataMigration {
                 status: expr.status,
                 t: expr.t as 'WORD' | 'PHRASE',
                 date: Math.floor(Date.now() / 1000),
+                createdDate: expr.createdDate || now,
+                modifiedDate: expr.modifiedDate || now,
                 notes: expr.notes || [],
                 tags: expr.tags || [],
                 sentenceIds

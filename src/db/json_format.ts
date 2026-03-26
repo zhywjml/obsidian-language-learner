@@ -70,6 +70,10 @@ export interface JsonExpression {
     t: 'WORD' | 'PHRASE';
     /** 创建/更新时间 (Unix timestamp) */
     date: number;
+    /** 创建日期 (YYYY-MM-DD) */
+    createdDate: string;
+    /** 最后修改日期 (YYYY-MM-DD) */
+    modifiedDate: string;
     /** 笔记 */
     notes: string[];
     /** 标签 */

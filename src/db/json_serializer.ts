@@ -50,6 +50,8 @@ export function serializeExpression(
         status: expr.status,
         t: expr.t as 'WORD' | 'PHRASE',
         date: expr.date,
+        createdDate: expr.createdDate || new Date().toISOString().split('T')[0],
+        modifiedDate: expr.modifiedDate || new Date().toISOString().split('T')[0],
         notes: expr.notes || [],
         tags: expr.tags ? [...expr.tags] : [],
         sentenceIds: expr.sentences ? [...expr.sentences] : []
@@ -124,6 +126,8 @@ export function expressionInfoToJson(
         return newId;
     });
 
+    const now = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
     return {
         id,
         expression: expr.expression.toLowerCase(),
@@ -131,6 +135,8 @@ export function expressionInfoToJson(
         status: expr.status,
         t: expr.t as 'WORD' | 'PHRASE',
         date: Math.floor(Date.now() / 1000),
+        createdDate: now,
+        modifiedDate: now,
         notes: expr.notes || [],
         tags: expr.tags || [],
         sentenceIds
