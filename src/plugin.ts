@@ -31,6 +31,7 @@ import { DataPanelView, DATA_ICON, DATA_PANEL_VIEW } from "./views/DataPanelView
 import { AnkiExportView, ANKI_EXPORT_ICON, ANKI_EXPORT_VIEW } from "./views/AnkiExportView";
 import { MdictPanelView, MDICT_ICON, MDICT_PANEL_VIEW } from "./dictionary/mdict/MdictPanelView";
 import { ReviewPanelView, REVIEW_PANEL_VIEW, REVIEW_ICON } from "./views/ReviewPanelView";
+import { HeatmapPanelView, HEATMAP_PANEL_VIEW, HEATMAP_ICON } from "./views/HeatmapPanelView";
 // import { PDFView, PDF_FILE_EXTENSION, VIEW_TYPE_PDF } from "./views/PDFView";
 
 import { t, setLanguage } from "./lang/helper";
@@ -151,6 +152,7 @@ export default class LanguageLearner extends Plugin {
         this.app.workspace.detachLeavesOfType(MDICT_PANEL_VIEW);
         this.app.workspace.detachLeavesOfType(ANKI_EXPORT_VIEW);
         this.app.workspace.detachLeavesOfType(REVIEW_PANEL_VIEW);
+        this.app.workspace.detachLeavesOfType(HEATMAP_PANEL_VIEW);
 
         this.db.close();
         this.mdictEngine?.close();
@@ -506,6 +508,15 @@ export default class LanguageLearner extends Plugin {
         );
         this.addRibbonIcon(REVIEW_ICON, t("Smart Review"), (evt) => {
             this.activateView(REVIEW_PANEL_VIEW, "right");
+        });
+
+        // 注册学习热力图面板
+        this.registerView(
+            HEATMAP_PANEL_VIEW,
+            (leaf) => new HeatmapPanelView(leaf, this)
+        );
+        this.addRibbonIcon(HEATMAP_ICON, t("Learning Heatmap"), (evt) => {
+            this.activateView(HEATMAP_PANEL_VIEW, "right");
         });
     }
 
