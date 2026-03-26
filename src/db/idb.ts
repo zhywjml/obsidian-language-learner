@@ -21,9 +21,24 @@ export default class WordDB extends Dexie {
         // ++id: 自增主键
         // &expression: 唯一索引（不重复）
         // *tags: 多值索引（数组）
+
+        // Version 1 - 初始schema
         this.version(1).stores({
             expressions: "++id, &expression, status, t, date, *tags",
             sentences: "++id, &text"
+        });
+
+        // Version 2 - 添加 createdDate 和 modifiedDate 索引
+        this.version(2).stores({
+            expressions: "++id, &expression, status, t, date, createdDate, modifiedDate, *tags",
+            sentences: "++id, &text"
+        }).upgrade(tx => {
+            // 迁移现有数据：将 date 时间戳转换为日期字符串
+            return tx.table("expressions").toCollection().modify(expr => {
+                const dateStr = new Date(expr.date * 1000).toISOString().split('T')[0];
+                expr.createdDate = dateStr;
+                expr.modifiedDate = dateStr;
+            });
         });
     }
 }
