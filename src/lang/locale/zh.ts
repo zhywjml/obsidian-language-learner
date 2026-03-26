@@ -71,10 +71,19 @@ export default {
     // settings - storage
     "Data Storage": "数据存储",
     "Storage Type": "存储方式",
+    "JSON file supports Obsidian Sync with high performance": "JSON 文件支持 Obsidian 同步，性能更高",
+    "JSON File (Recommended)": "JSON 文件（推荐）",
+    "IndexedDB (Local Only)": "IndexedDB（仅本地）",
+    "Remote Server": "远程服务器",
+    "JSON File Path": "JSON 文件路径",
+    "Path relative to vault root, e.g. 'Language Learner/words.json'": "相对于库根目录的路径，如 'Language Learner/words.json'",
+    "Sync Debounce": "同步防抖",
+    "Delay before syncing to JSON file (ms)": "同步到 JSON 文件的延迟（毫秒）",
+
+    // Legacy storage translations (keep for compatibility)
     "Markdown file supports Obsidian Sync and can be viewed/edited directly": "Markdown 文件支持 Obsidian 同步，可直接查看和编辑",
     "Markdown File (Recommended)": "Markdown 文件（推荐）",
     "IndexedDB (Local)": "IndexedDB（本地）",
-    "Remote Server": "远程服务器",
     "Markdown File Path": "Markdown 文件路径",
     "Path relative to vault root, e.g. 'Language Learner/words.md'": "相对于库根目录的路径，如 'Language Learner/words.md'",
     "Migrate Data": "迁移数据",

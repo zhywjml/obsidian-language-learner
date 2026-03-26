@@ -72,10 +72,19 @@ export default {
     // settings - storage
     "Data Storage": "Data Storage",
     "Storage Type": "Storage Type",
+    "JSON file supports Obsidian Sync with high performance": "JSON file supports Obsidian Sync with high performance",
+    "JSON File (Recommended)": "JSON File (Recommended)",
+    "IndexedDB (Local Only)": "IndexedDB (Local Only)",
+    "Remote Server": "Remote Server",
+    "JSON File Path": "JSON File Path",
+    "Path relative to vault root, e.g. 'Language Learner/words.json'": "Path relative to vault root, e.g. 'Language Learner/words.json'",
+    "Sync Debounce": "Sync Debounce",
+    "Delay before syncing to JSON file (ms)": "Delay before syncing to JSON file (ms)",
+
+    // Legacy storage translations (keep for compatibility)
     "Markdown file supports Obsidian Sync and can be viewed/edited directly": "Markdown file supports Obsidian Sync and can be viewed/edited directly",
     "Markdown File (Recommended)": "Markdown File (Recommended)",
     "IndexedDB (Local)": "IndexedDB (Local)",
-    "Remote Server": "Remote Server",
     "Markdown File Path": "Markdown File Path",
     "Path relative to vault root, e.g. 'Language Learner/words.md'": "Path relative to vault root, e.g. 'Language Learner/words.md'",
     "Migrate Data": "Migrate Data",

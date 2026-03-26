@@ -71,6 +71,18 @@ export default {
     "Accumulated": "累計",
     "Statistics": "統計",
 
+    // settings - storage
+    "Data Storage": "數據存儲",
+    "Storage Type": "存儲方式",
+    "JSON file supports Obsidian Sync with high performance": "JSON 文件支持 Obsidian 同步，性能更高",
+    "JSON File (Recommended)": "JSON 文件（推薦）",
+    "IndexedDB (Local Only)": "IndexedDB（僅本地）",
+    "Remote Server": "遠程伺服器",
+    "JSON File Path": "JSON 文件路徑",
+    "Path relative to vault root, e.g. 'Language Learner/words.json'": "相對於庫根目錄的路徑，如 'Language Learner/words.json'",
+    "Sync Debounce": "同步防抖",
+    "Delay before syncing to JSON file (ms)": "同步到 JSON 文件的延遲（毫秒）",
+
     // settings
     "Use Server": "使用伺服器",
     "Use a seperated backend server": "使用單獨的後端伺服器(目前只對作者有用)",
