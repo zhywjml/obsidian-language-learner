@@ -468,6 +468,74 @@ export class LocalDb extends DbProvider {
         };
     }
 
+    /**
+     * 按日期查询单词（YYYY-MM-DD 格式）
+     */
+    async getExpressionsByDate(date: string): Promise<ExpressionInfo[]> {
+        const startOfDay = moment(date).startOf("day").unix();
+        const endOfDay = moment(date).endOf("day").unix();
+
+        let exprs = await this.idb.expressions
+            .where("date")
+            .between(startOfDay, endOfDay, true, true)
+            .and(expr => expr.status > 0)
+            .toArray();
+
+        let res: ExpressionInfo[] = [];
+        for (let expr of exprs) {
+            let sentences = await this.idb.sentences
+                .where("id").anyOf([...expr.sentences.values()])
+                .toArray();
+
+            res.push({
+                expression: expr.expression,
+                meaning: expr.meaning,
+                status: expr.status,
+                t: expr.t,
+                notes: expr.notes,
+                sentences,
+                tags: [...expr.tags.keys()],
+                createdDate: expr.createdDate,
+                modifiedDate: expr.modifiedDate,
+            });
+        }
+        return res;
+    }
+
+    /**
+     * 按日期范围查询单词（YYYY-MM-DD 格式）
+     */
+    async getExpressionsByDateRange(start: string, end: string): Promise<ExpressionInfo[]> {
+        const startUnix = moment(start).startOf("day").unix();
+        const endUnix = moment(end).endOf("day").unix();
+
+        let exprs = await this.idb.expressions
+            .where("date")
+            .between(startUnix, endUnix, true, true)
+            .and(expr => expr.status > 0)
+            .toArray();
+
+        let res: ExpressionInfo[] = [];
+        for (let expr of exprs) {
+            let sentences = await this.idb.sentences
+                .where("id").anyOf([...expr.sentences.values()])
+                .toArray();
+
+            res.push({
+                expression: expr.expression,
+                meaning: expr.meaning,
+                status: expr.status,
+                t: expr.t,
+                notes: expr.notes,
+                sentences,
+                tags: [...expr.tags.keys()],
+                createdDate: expr.createdDate,
+                modifiedDate: expr.modifiedDate,
+            });
+        }
+        return res;
+    }
+
     async importDB(file: File) {
         await this.idb.delete();
         await this.idb.open();

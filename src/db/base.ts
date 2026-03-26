@@ -38,6 +38,9 @@ abstract class DbProvider {
     abstract countSeven(): Promise<WordCount[]>;
     // 获取热力图数据（指定年份，不传则使用当前年份）
     abstract getHeatmapData(year?: number): Promise<HeatmapStats>;
+    // 按日期查询单词
+    abstract getExpressionsByDate(date: string): Promise<ExpressionInfo[]>;
+    abstract getExpressionsByDateRange(start: string, end: string): Promise<ExpressionInfo[]>;
     // 销毁数据库
     abstract destroyAll(): Promise<void>;
     // 导入数据库

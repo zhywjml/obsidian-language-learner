@@ -217,6 +217,20 @@ export class JsonSyncDb extends DbProvider {
     }
 
     /**
+     * 按日期查询单词
+     */
+    async getExpressionsByDate(date: string): Promise<ExpressionInfo[]> {
+        return this.localDb.getExpressionsByDate(date);
+    }
+
+    /**
+     * 按日期范围查询单词
+     */
+    async getExpressionsByDateRange(start: string, end: string): Promise<ExpressionInfo[]> {
+        return this.localDb.getExpressionsByDateRange(start, end);
+    }
+
+    /**
      * 销毁数据库
      */
     async destroyAll(): Promise<void> {

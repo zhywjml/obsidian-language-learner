@@ -276,6 +276,18 @@ export class WebDb extends DbProvider {
         }
     }
 
+    // 按日期查询单词（stub 实现）
+    async getExpressionsByDate(date: string): Promise<ExpressionInfo[]> {
+        console.warn("[WebDb] getExpressionsByDate not implemented");
+        return [];
+    }
+
+    // 按日期范围查询单词（stub 实现）
+    async getExpressionsByDateRange(start: string, end: string): Promise<ExpressionInfo[]> {
+        console.warn("[WebDb] getExpressionsByDateRange not implemented");
+        return [];
+    }
+
     async importDB() { }
 
     async exportDB() { }
