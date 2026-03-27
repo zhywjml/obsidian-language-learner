@@ -432,6 +432,33 @@ export default class LanguageLearner extends Plugin {
                 this.activateView(REVIEW_PANEL_VIEW, "right");
             },
         });
+
+        // 注册 PDF 导出命令
+        this.addCommand({
+            id: "langr-export-pdf",
+            name: t("Export to PDF"),
+            callback: () => {
+                this.exportToPDF();
+            },
+        });
+    }
+
+    /**
+     * 导出当前文章为 PDF
+     */
+    async exportToPDF() {
+        // 获取当前活动视图
+        const activeView = this.app.workspace.getActiveViewOfType(ReadingView);
+        if (!activeView) {
+            new Notice(t("Please open an article in reading mode first"));
+            return;
+        }
+
+        // 触发导出事件，由 ReadingArea 组件处理
+        const event = new CustomEvent("langr-export-pdf", {
+            detail: { file: activeView.file }
+        });
+        window.dispatchEvent(event);
     }
 
     registerCustomViews() {
