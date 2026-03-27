@@ -363,4 +363,30 @@ export default {
     "No words recorded on this date": "No words recorded on this date",
     "Created": "Created",
     "Modified": "Modified",
+
+    // Heatmap Panel - View Modes
+    "Year View": "Year View",
+    "Month Grid": "Month Grid",
+    "Multi Year": "Multi Year",
+    "Show years": "Show years",
+    "Last 3 years": "Last 3 years",
+    "Last 5 years": "Last 5 years",
+    "All years": "All years",
+    "days": "days",
+    "No data available": "No data available",
+    "Failed to load data": "Failed to load data",
+
+    // Month abbreviations
+    "Jan": "Jan",
+    "Feb": "Feb",
+    "Mar": "Mar",
+    "Apr": "Apr",
+    "May": "May",
+    "Jun": "Jun",
+    "Jul": "Jul",
+    "Aug": "Aug",
+    "Sep": "Sep",
+    "Oct": "Oct",
+    "Nov": "Nov",
+    "Dec": "Dec",
 };

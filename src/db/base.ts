@@ -1,7 +1,8 @@
 import {
     ArticleWords, Word, Phrase, WordsPhrase, Sentence,
     ExpressionInfo, ExpressionInfoSimple, CountInfo, WordCount, Span,
-    HeatmapStats
+    HeatmapStats,
+    MonthlyStats, YearlyStats
 } from "./interface";
 
 /**
@@ -41,6 +42,12 @@ abstract class DbProvider {
     // 按日期查询单词
     abstract getExpressionsByDate(date: string): Promise<ExpressionInfo[]>;
     abstract getExpressionsByDateRange(start: string, end: string): Promise<ExpressionInfo[]>;
+    // 获取指定年份的月度统计
+    abstract getMonthlyStats(year: number): Promise<MonthlyStats[]>;
+    // 获取多个年份的年度统计
+    abstract getYearlyStats(years: number[]): Promise<YearlyStats[]>;
+    // 获取数据库中有数据的年份列表
+    abstract getAvailableYears(): Promise<number[]>;
     // 销毁数据库
     abstract destroyAll(): Promise<void>;
     // 导入数据库

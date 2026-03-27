@@ -16,7 +16,8 @@ import { createJsonDataFormat, computeHash } from "./json_serializer";
 import type {
     ArticleWords, WordsPhrase, Sentence,
     ExpressionInfo, ExpressionInfoSimple, CountInfo, WordCount,
-    HeatmapStats
+    HeatmapStats,
+    MonthlyStats, YearlyStats
 } from "./interface";
 import type Plugin from "@/plugin";
 
@@ -213,7 +214,7 @@ export class JsonSyncDb extends DbProvider {
      * 获取热力图数据
      */
     async getHeatmapData(year?: number): Promise<HeatmapStats> {
-        return this.localDb.getHeatmapData();
+        return this.localDb.getHeatmapData(year);
     }
 
     /**
@@ -228,6 +229,27 @@ export class JsonSyncDb extends DbProvider {
      */
     async getExpressionsByDateRange(start: string, end: string): Promise<ExpressionInfo[]> {
         return this.localDb.getExpressionsByDateRange(start, end);
+    }
+
+    /**
+     * 获取指定年份的月度统计
+     */
+    async getMonthlyStats(year: number): Promise<MonthlyStats[]> {
+        return this.localDb.getMonthlyStats(year);
+    }
+
+    /**
+     * 获取多个年份的年度统计
+     */
+    async getYearlyStats(years: number[]): Promise<YearlyStats[]> {
+        return this.localDb.getYearlyStats(years);
+    }
+
+    /**
+     * 获取数据库中有数据的年份列表
+     */
+    async getAvailableYears(): Promise<number[]> {
+        return this.localDb.getAvailableYears();
     }
 
     /**

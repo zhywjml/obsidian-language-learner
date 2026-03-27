@@ -19,16 +19,18 @@
         <!-- 词典选择器 -->
         <div class="dict-selector" v-if="dictPaths.length > 0">
             <div
-                class="dict-dropdown"
+                class="dict-dropdown-wrapper"
                 @mouseenter="showDropdown = true"
-                @mouseleave="showDropdown = false"
+                @mouseleave="hideDropdownWithDelay"
             >
-                <span class="dict-label">
-                    <span v-if="dictLoaded" class="dict-status-dot loaded"></span>
-                    <span v-else class="dict-status-dot"></span>
-                    {{ currentDictName }}
-                </span>
-                <div class="dropdown-menu" v-show="showDropdown" @mouseenter="showDropdown = true" @mouseleave="showDropdown = false">
+                <div class="dict-dropdown">
+                    <span class="dict-label">
+                        <span v-if="dictLoaded" class="dict-status-dot loaded"></span>
+                        <span v-else class="dict-status-dot"></span>
+                        {{ currentDictName }}
+                    </span>
+                </div>
+                <div class="dropdown-menu" v-show="showDropdown" @mouseenter="clearHideTimeout">
                     <div
                         v-for="dict in dictPaths"
                         :key="dict.path"
@@ -98,6 +100,22 @@ const selectedDict = ref("");
 const showDropdown = ref(false);
 const dictLoaded = ref(false); // 响应式加载状态
 const loading = ref(false);
+const hideTimeout = ref<number | null>(null);
+
+// 延迟关闭下拉菜单（给鼠标移动留时间）
+const hideDropdownWithDelay = () => {
+    hideTimeout.value = window.setTimeout(() => {
+        showDropdown.value = false;
+    }, 200);
+};
+
+// 清除关闭定时器
+const clearHideTimeout = () => {
+    if (hideTimeout.value) {
+        clearTimeout(hideTimeout.value);
+        hideTimeout.value = null;
+    }
+};
 
 // 获取配置的词典路径列表
 const dictPaths = computed(() => {
@@ -356,9 +374,13 @@ onUnmounted(() => {
         align-items: center;
         gap: 8px;
 
-        .dict-dropdown {
+        .dict-dropdown-wrapper {
             flex: 1;
             position: relative;
+            display: inline-block;
+        }
+
+        .dict-dropdown {
             min-height: 32px;
             padding: 4px 10px;
             border: 1px solid var(--background-modifier-border);
@@ -391,54 +413,56 @@ onUnmounted(() => {
                     background: #4caf50;
                 }
             }
+        }
 
-            .dropdown-menu {
-                position: absolute;
-                top: 100%;
-                left: 0;
-                min-width: 200px;
-                max-height: 200px;
-                overflow-y: auto;
-                padding: 4px 0;
-                background: var(--background-primary);
-                border: 1px solid var(--background-modifier-border);
-                border-radius: 6px;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-                z-index: 100;
-                margin-top: 2px;
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            min-width: 200px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 4px 0;
+            margin-top: -2px;
+            padding-top: 6px;
+            background: var(--background-primary);
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            z-index: 100;
 
-                .dropdown-item {
-                    padding: 6px 12px;
-                    font-size: 12px;
-                    color: var(--text-normal);
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
+            .dropdown-item {
+                padding: 8px 12px;
+                font-size: 12px;
+                color: var(--text-normal);
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 8px;
 
-                    &:hover {
-                        background: var(--background-secondary);
-                    }
+                &:hover {
+                    background: var(--background-secondary);
+                }
 
-                    &.active {
-                        color: var(--interactive-accent);
-                        font-weight: 600;
-                    }
+                &.active {
+                    color: var(--interactive-accent);
+                    font-weight: 600;
+                }
 
-                    &.disabled {
-                        color: var(--text-muted);
-                        cursor: not-allowed;
-                        opacity: 0.5;
-                    }
+                &.disabled {
+                    color: var(--text-muted);
+                    cursor: not-allowed;
+                    opacity: 0.5;
+                }
 
-                    .check-icon {
-                        width: 14px;
-                        text-align: center;
-                        color: var(--interactive-accent);
+                .check-icon {
+                    width: 14px;
+                    text-align: center;
+                    color: var(--interactive-accent);
 
-                        &.empty {
-                            color: transparent;
-                        }
+                    &.empty {
+                        color: transparent;
                     }
                 }
             }

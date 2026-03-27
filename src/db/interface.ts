@@ -101,9 +101,27 @@ interface HeatmapStats {
     endDate: string;             // 结束日期
 }
 
+// 月度统计信息
+interface MonthlyStats {
+    month: number;      // 1-12
+    year: number;
+    totalWords: number; // 该月总学习单词数
+    daysWithActivity: number; // 有学习活动的天数
+}
+
+// 年度统计信息
+interface YearlyStats {
+    year: number;
+    totalWords: number;     // 全年总学习单词数
+    totalDays: number;      // 全年天数（通常365/366）
+    longestStreak: number;  // 最长连续学习天数
+    monthlyData: MonthlyStats[]; // 各月数据
+}
+
 
 export type {
     ArticleWords, Word, Phrase, WordsPhrase, Sentence,
     ExpressionInfo, ExpressionInfoSimple, CountInfo, WordCount, Span,
-    HeatmapData, HeatmapStats
+    HeatmapData, HeatmapStats,
+    MonthlyStats, YearlyStats
 };

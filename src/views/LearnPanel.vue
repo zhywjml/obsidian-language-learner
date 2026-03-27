@@ -53,17 +53,19 @@
             <!-- 加一些tag, 可以用来搜索 -->
             <div class="form-group">
                 <label class="form-label">{{ t("Tags") }}</label>
-                <div class="tags-dropdown" @mouseenter="showTagDropdown = true" @mouseleave="showTagDropdown = false">
-                    <div class="tags-trigger">
-                        <span v-if="model.tags.length === 0" class="placeholder">{{ t('Input or select some tags') }}</span>
-                        <span v-else class="selected-tags">
-                            <span v-for="tag in model.tags" :key="tag" class="selected-tag">
-                                {{ tag }}
-                                <span class="remove-tag" @click.stop="removeTag(tag)">×</span>
+                <div class="tags-dropdown-wrapper" @mouseenter="showTagDropdown = true" @mouseleave="hideDropdownWithDelay">
+                    <div class="tags-dropdown">
+                        <div class="tags-trigger">
+                            <span v-if="model.tags.length === 0" class="placeholder">{{ t('Input or select some tags') }}</span>
+                            <span v-else class="selected-tags">
+                                <span v-for="tag in model.tags" :key="tag" class="selected-tag">
+                                    {{ tag }}
+                                    <span class="remove-tag" @click.stop="removeTag(tag)">×</span>
+                                </span>
                             </span>
-                        </span>
+                        </div>
                     </div>
-                    <div class="dropdown-menu" v-show="showTagDropdown" @mouseenter="showTagDropdown = true" @mouseleave="showTagDropdown = false">
+                    <div class="dropdown-menu" v-show="showTagDropdown" @mouseenter="clearHideTimeout">
                         <div class="dropdown-section">
                             <div
                                 v-for="tag in availableTags"
@@ -225,6 +227,23 @@ let availableTags = ref<string[]>([]);
 let showTagDropdown = ref(false);
 let showCreateTag = ref(false);
 let newTagName = ref("");
+let hideTimeout = ref<number | null>(null);
+
+// 延迟关闭下拉菜单（给鼠标移动留时间）
+const hideDropdownWithDelay = () => {
+    hideTimeout.value = window.setTimeout(() => {
+        showTagDropdown.value = false;
+        showCreateTag.value = false;
+    }, 200);
+};
+
+// 清除关闭定时器
+const clearHideTimeout = () => {
+    if (hideTimeout.value) {
+        clearTimeout(hideTimeout.value);
+        hideTimeout.value = null;
+    }
+};
 
 // 加载所有可用标签
 async function loadTags() {
@@ -490,9 +509,13 @@ useEvent(window, "obsidian-langr-search", async (evt: CustomEvent) => {
 		margin-top: 4px;
 	}
 
-	.tags-dropdown {
+	.tags-dropdown-wrapper {
 		position: relative;
+		display: inline-block;
+		width: 100%;
+	}
 
+	.tags-dropdown {
 		.tags-trigger {
 			min-height: 32px;
 			padding: 4px 8px;
@@ -537,125 +560,127 @@ useEvent(window, "obsidian-langr-search", async (evt: CustomEvent) => {
 				}
 			}
 		}
+	}
 
-		.dropdown-menu {
-			position: absolute;
-			top: 100%;
-			left: 0;
-			min-width: 200px;
-			max-height: 200px;
+	.dropdown-menu {
+		position: absolute;
+		top: 100%;
+		left: 0;
+		width: 100%;
+		min-width: 200px;
+		max-height: 200px;
+		overflow-y: auto;
+		padding: 4px 0;
+		margin-top: -2px;
+		padding-top: 6px;
+		background: var(--background-primary);
+		border: 1px solid var(--background-modifier-border);
+		border-radius: 6px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+		z-index: 100;
+
+		.dropdown-divider {
+			height: 1px;
+			background: var(--background-modifier-border);
+			margin: 4px 0;
+		}
+
+		.dropdown-section {
+			max-height: 140px;
 			overflow-y: auto;
-			padding: 4px 0;
-			background: var(--background-primary);
-			border: 1px solid var(--background-modifier-border);
-			border-radius: 6px;
-			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-			z-index: 100;
-			margin-top: 2px;
+		}
 
-			.dropdown-divider {
-				height: 1px;
-				background: var(--background-modifier-border);
-				margin: 4px 0;
+		.dropdown-item {
+			padding: 6px 12px;
+			font-size: 12px;
+			color: var(--text-normal);
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+
+			&:hover {
+				background: var(--background-secondary);
 			}
 
-			.dropdown-section {
-				max-height: 140px;
-				overflow-y: auto;
+			&.checkbox-item {
+				.checkbox {
+					width: 16px;
+					height: 16px;
+					border: 1px solid var(--background-modifier-border);
+					border-radius: 3px;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					font-size: 10px;
+					color: var(--interactive-accent);
+					background: var(--background-primary);
+				}
+
+				&.checked .checkbox {
+					background: var(--interactive-accent);
+					border-color: var(--interactive-accent);
+					color: var(--text-on-accent);
+				}
+
+				.tag-text {
+					flex: 1;
+				}
 			}
 
-			.dropdown-item {
-				padding: 6px 12px;
-				font-size: 12px;
-				color: var(--text-normal);
-				cursor: pointer;
-				display: flex;
-				align-items: center;
-				gap: 8px;
+			&.create-tag {
+				color: var(--interactive-accent);
+
+				.plus-icon {
+					width: 16px;
+					height: 16px;
+					border: 1px dashed var(--interactive-accent);
+					border-radius: 3px;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					font-size: 12px;
+					font-weight: bold;
+				}
 
 				&:hover {
 					background: var(--background-secondary);
 				}
+			}
+		}
 
-				&.checkbox-item {
-					.checkbox {
-						width: 16px;
-						height: 16px;
-						border: 1px solid var(--background-modifier-border);
-						border-radius: 3px;
-						display: flex;
-						align-items: center;
-						justify-content: center;
-						font-size: 10px;
-						color: var(--interactive-accent);
-						background: var(--background-primary);
-					}
+		.create-tag-form {
+			padding: 8px 12px;
+			display: flex;
+			gap: 8px;
 
-					&.checked .checkbox {
-						background: var(--interactive-accent);
-						border-color: var(--interactive-accent);
-						color: var(--text-on-accent);
-					}
+			.tag-input {
+				flex: 1;
+				padding: 4px 8px;
+				background: var(--background-secondary);
+				border: 1px solid var(--background-modifier-border);
+				border-radius: 4px;
+				color: var(--text-normal);
+				font-size: 11px;
+				margin-top: 0;
 
-					.tag-text {
-						flex: 1;
-					}
-				}
-
-				&.create-tag {
-					color: var(--interactive-accent);
-
-					.plus-icon {
-						width: 16px;
-						height: 16px;
-						border: 1px dashed var(--interactive-accent);
-						border-radius: 3px;
-						display: flex;
-						align-items: center;
-						justify-content: center;
-						font-size: 12px;
-						font-weight: bold;
-					}
-
-					&:hover {
-						background: var(--background-secondary);
-					}
+				&:focus {
+					outline: none;
+					border-color: var(--interactive-accent);
 				}
 			}
 
-			.create-tag-form {
-				padding: 8px 12px;
-				display: flex;
-				gap: 8px;
+			.create-btn {
+				padding: 4px 10px;
+				background: var(--interactive-accent);
+				border: none;
+				border-radius: 4px;
+				color: var(--text-on-accent);
+				font-size: 11px;
+				cursor: pointer;
 
-				.tag-input {
-					flex: 1;
-					padding: 4px 8px;
-					background: var(--background-secondary);
-					border: 1px solid var(--background-modifier-border);
-					border-radius: 4px;
-					color: var(--text-normal);
-					font-size: 11px;
-					margin-top: 0;
-
-					&:focus {
-						outline: none;
-						border-color: var(--interactive-accent);
-					}
-				}
-
-				.create-btn {
-					padding: 4px 10px;
-					background: var(--interactive-accent);
-					border: none;
-					border-radius: 4px;
-					color: var(--text-on-accent);
-					font-size: 11px;
-					cursor: pointer;
-
-					&:hover {
-						opacity: 0.9;
-					}
+				&:hover {
+					opacity: 0.9;
 				}
 			}
 		}

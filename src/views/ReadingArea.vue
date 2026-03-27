@@ -112,6 +112,7 @@ import store from "@/store";
 import { ReadingView } from "./ReadingView";
 import CountBar from "./CountBar.vue";
 import DockPagination from "./DockPagination.vue";
+import { clearParseCache, clearASTCache } from "./parser";
 
 let vueThis = getCurrentInstance();
 let view = vueThis.appContext.config.globalProperties.view as ReadingView;
@@ -291,11 +292,21 @@ async function addIgnores() {
         await plugin.db.postIgnoreWords([...ignore_words]);
     }
 
+    // 立即更新当前页DOM中这些单词的样式（从 new 变为 ignore）
+    ignores.forEach((el) => {
+        el.classList.remove("new");
+        el.classList.add("ignore");
+    });
+
     // 触发统计刷新
     dispatchEvent(new CustomEvent("obsidian-langr-refresh-stat"));
 
     // 刷新计数
     refreshCount();
+
+    // 清除解析缓存，确保下一页或刷新时获取最新状态
+    clearParseCache();
+    clearASTCache();
 
     if (page.value * pageSize.value < totalLines) {
         // 进入下一页，触发 watch 重新解析

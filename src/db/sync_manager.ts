@@ -288,7 +288,7 @@ export class SyncManager {
      */
     async writeJsonFile(data: JsonDataFormat): Promise<void> {
         const content = JSON.stringify(data, null, 2);
-        const file = this.vault.getAbstractFileByPath(this.jsonPath);
+        let file = this.vault.getAbstractFileByPath(this.jsonPath);
 
         // 确保目录存在
         const parentPath = this.jsonPath.substring(0, this.jsonPath.lastIndexOf('/'));
@@ -299,7 +299,21 @@ export class SyncManager {
         if (file instanceof TFile) {
             await this.vault.modify(file, content);
         } else {
-            await this.vault.create(this.jsonPath, content);
+            try {
+                await this.vault.create(this.jsonPath, content);
+            } catch (e) {
+                // 如果文件已存在（竞态条件），则获取文件并修改
+                if (e.message?.includes('already exists')) {
+                    file = this.vault.getAbstractFileByPath(this.jsonPath);
+                    if (file instanceof TFile) {
+                        await this.vault.modify(file, content);
+                    } else {
+                        throw e;
+                    }
+                } else {
+                    throw e;
+                }
+            }
         }
     }
 

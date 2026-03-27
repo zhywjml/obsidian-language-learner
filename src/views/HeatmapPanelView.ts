@@ -41,8 +41,10 @@ export class HeatmapPanelView extends ItemView {
         const mountPoint = container.createDiv({ cls: "heatmap-panel-container" });
         mountPoint.style.height = "100%";
 
-        // 挂载 Vue 应用
-        this.vueApp = createApp(HeatmapPanel);
+        // 挂载 Vue 应用，传递 db 作为 prop
+        this.vueApp = createApp(HeatmapPanel, {
+            db: this.plugin.db
+        });
         this.vueApp.config.globalProperties.view = this;
         this.vueApp.config.globalProperties.plugin = this.plugin;
         this.vueApp.mount(mountPoint);

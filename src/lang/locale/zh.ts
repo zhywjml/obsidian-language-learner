@@ -354,4 +354,30 @@ export default {
     "No words recorded on this date": "该日期没有记录单词",
     "Created": "创建",
     "Modified": "修改",
+
+    // Heatmap Panel - View Modes
+    "Year View": "年视图",
+    "Month Grid": "月份网格",
+    "Multi Year": "多年对比",
+    "Show years": "显示年份",
+    "Last 3 years": "最近3年",
+    "Last 5 years": "最近5年",
+    "All years": "全部年份",
+    "days": "天",
+    "No data available": "暂无数据",
+    "Failed to load data": "加载数据失败",
+
+    // Month abbreviations
+    "Jan": "1月",
+    "Feb": "2月",
+    "Mar": "3月",
+    "Apr": "4月",
+    "May": "5月",
+    "Jun": "6月",
+    "Jul": "7月",
+    "Aug": "8月",
+    "Sep": "9月",
+    "Oct": "10月",
+    "Nov": "11月",
+    "Dec": "12月",
 };

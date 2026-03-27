@@ -2,7 +2,8 @@ import { requestUrl, RequestUrlParam, moment } from "obsidian";
 import {
     ArticleWords, Word, Phrase, WordsPhrase, Sentence,
     ExpressionInfo, ExpressionInfoSimple, CountInfo, WordCount, Span,
-    HeatmapStats
+    HeatmapStats,
+    MonthlyStats, YearlyStats
 } from "./interface";
 
 import DbProvider from "./base";
@@ -251,9 +252,10 @@ export class WebDb extends DbProvider {
     }
 
     // 获取热力图数据（远程服务器版本）
-    async getHeatmapData(): Promise<HeatmapStats> {
+    async getHeatmapData(year?: number): Promise<HeatmapStats> {
+        const targetYear = year || moment().year();
         let request: RequestUrlParam = {
-            url: `${this.proto}://${this.host}:${this.port}${this.prefix}/heatmap`,
+            url: `${this.proto}://${this.host}:${this.port}${this.prefix}/heatmap?year=${targetYear}`,
             method: "GET",
             headers: this.baseHeaders,
         };
@@ -264,14 +266,16 @@ export class WebDb extends DbProvider {
         } catch (e) {
             console.warn("Error getting heatmap data" + e);
             // 返回空数据
+            const startOfYear = moment().year(targetYear).startOf("year");
+            const endOfYear = moment().year(targetYear).endOf("year");
             return {
                 totalDays: 0,
                 totalLearned: 0,
                 longestStreak: 0,
                 currentStreak: 0,
                 data: [],
-                startDate: moment().format("YYYY-MM-DD"),
-                endDate: moment().format("YYYY-MM-DD"),
+                startDate: startOfYear.format("YYYY-MM-DD"),
+                endDate: endOfYear.format("YYYY-MM-DD"),
             };
         }
     }
@@ -285,6 +289,24 @@ export class WebDb extends DbProvider {
     // 按日期范围查询单词（stub 实现）
     async getExpressionsByDateRange(start: string, end: string): Promise<ExpressionInfo[]> {
         console.warn("[WebDb] getExpressionsByDateRange not implemented");
+        return [];
+    }
+
+    // 获取指定年份的月度统计（stub 实现）
+    async getMonthlyStats(year: number): Promise<MonthlyStats[]> {
+        console.warn("[WebDb] getMonthlyStats not implemented");
+        return [];
+    }
+
+    // 获取多个年份的年度统计（stub 实现）
+    async getYearlyStats(years: number[]): Promise<YearlyStats[]> {
+        console.warn("[WebDb] getYearlyStats not implemented");
+        return [];
+    }
+
+    // 获取数据库中有数据的年份列表（stub 实现）
+    async getAvailableYears(): Promise<number[]> {
+        console.warn("[WebDb] getAvailableYears not implemented");
         return [];
     }
 

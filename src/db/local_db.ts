@@ -6,7 +6,8 @@ import download from "downloadjs";
 import {
     ArticleWords, Word, Phrase, WordsPhrase, Sentence,
     ExpressionInfo, ExpressionInfoSimple, CountInfo, WordCount, Span,
-    HeatmapData, HeatmapStats
+    HeatmapData, HeatmapStats,
+    MonthlyStats, YearlyStats
 } from "./interface";
 import DbProvider from "./base";
 import WordDB from "./idb";
@@ -125,6 +126,8 @@ export class LocalDb extends DbProvider {
             .where("id").anyOf([...expr.sentences.values()])
             .toArray();
 
+        // 如果 createdDate/modifiedDate 不存在，从 date 字段推导
+        const fallbackDate = moment.unix(expr.date).format("YYYY-MM-DD");
         return {
             expression: expr.expression,
             meaning: expr.meaning,
@@ -133,8 +136,8 @@ export class LocalDb extends DbProvider {
             notes: expr.notes,
             sentences,
             tags: [...expr.tags.keys()],
-            createdDate: expr.createdDate,
-            modifiedDate: expr.modifiedDate,
+            createdDate: expr.createdDate || fallbackDate,
+            modifiedDate: expr.modifiedDate || fallbackDate,
         };
 
     }
@@ -148,6 +151,8 @@ export class LocalDb extends DbProvider {
             .toArray();
 
         return exprs.map(v => {
+            // 如果 createdDate/modifiedDate 不存在，从 date 字段推导
+            const fallbackDate = moment.unix(v.date).format("YYYY-MM-DD");
             return {
                 expression: v.expression,
                 meaning: v.meaning,
@@ -157,8 +162,8 @@ export class LocalDb extends DbProvider {
                 sen_num: v.sentences.size,
                 note_num: v.notes.length,
                 date: v.date,
-                createdDate: v.createdDate,
-                modifiedDate: v.modifiedDate,
+                createdDate: v.createdDate || fallbackDate,
+                modifiedDate: v.modifiedDate || fallbackDate,
             };
         });
     }
@@ -176,6 +181,8 @@ export class LocalDb extends DbProvider {
                 .where("id").anyOf([...expr.sentences.values()])
                 .toArray();
 
+            // 如果 createdDate/modifiedDate 不存在，从 date 字段推导
+            const fallbackDate = moment.unix(expr.date).format("YYYY-MM-DD");
             res.push({
                 expression: expr.expression,
                 meaning: expr.meaning,
@@ -184,8 +191,8 @@ export class LocalDb extends DbProvider {
                 notes: expr.notes,
                 sentences,
                 tags: [...expr.tags.keys()],
-                createdDate: expr.createdDate,
-                modifiedDate: expr.modifiedDate,
+                createdDate: expr.createdDate || fallbackDate,
+                modifiedDate: expr.modifiedDate || fallbackDate,
             });
         }
         return res;
@@ -197,6 +204,8 @@ export class LocalDb extends DbProvider {
             .where("status").above(bottomStatus)
             .toArray()
         ).map((expr): ExpressionInfoSimple => {
+            // 如果 createdDate/modifiedDate 不存在，从 date 字段推导
+            const fallbackDate = moment.unix(expr.date).format("YYYY-MM-DD");
             return {
                 expression: expr.expression,
                 status: expr.status,
@@ -206,8 +215,8 @@ export class LocalDb extends DbProvider {
                 note_num: expr.notes.length,
                 sen_num: expr.sentences.size,
                 date: expr.date,
-                createdDate: expr.createdDate,
-                modifiedDate: expr.modifiedDate,
+                createdDate: expr.createdDate || fallbackDate,
+                modifiedDate: expr.modifiedDate || fallbackDate,
             };
         });
 
@@ -353,13 +362,21 @@ export class LocalDb extends DbProvider {
 
     /**
      * 获取热力图数据（GitHub 风格）
-     * 返回从开始学习到今天所有的学习记录
+     * 返回指定年份的学习记录
      */
-    async getHeatmapData(): Promise<HeatmapStats> {
-        // 获取所有非忽略的单词（status > 0）
+    async getHeatmapData(year?: number): Promise<HeatmapStats> {
+        const targetYear = year || moment().year();
+        const startOfYear = moment().year(targetYear).startOf("year");
+        const endOfYear = moment().year(targetYear).endOf("year");
+        const startUnix = startOfYear.unix();
+        const endUnix = endOfYear.unix();
+
+        // 获取指定年份内非忽略的单词和短语（status > 0）
         let allExpressions: { date: number; status: number }[] = [];
         await this.idb.expressions
-            .filter(expr => expr.t === "WORD" && expr.status > 0)
+            .where("date")
+            .between(startUnix, endUnix, true, true)
+            .and(expr => expr.status > 0)
             .each(expr => {
                 allExpressions.push({ date: expr.date, status: expr.status });
             });
@@ -371,8 +388,8 @@ export class LocalDb extends DbProvider {
                 longestStreak: 0,
                 currentStreak: 0,
                 data: [],
-                startDate: moment().format("YYYY-MM-DD"),
-                endDate: moment().format("YYYY-MM-DD"),
+                startDate: startOfYear.format("YYYY-MM-DD"),
+                endDate: endOfYear.format("YYYY-MM-DD"),
             };
         }
 
@@ -383,20 +400,12 @@ export class LocalDb extends DbProvider {
             dateMap.set(dateStr, (dateMap.get(dateStr) || 0) + 1);
         }
 
-        // 获取日期范围
-        let dates = Array.from(dateMap.keys()).sort();
-        let startDate = dates[0];
-        let endDate = dates[dates.length - 1];
-
-        // 填充整个日期范围（包括没有学习的天数）
-        let start = moment(startDate);
-        let end = moment(endDate);
-        let current = start.clone();
-
+        // 填充整年的日期范围（包括没有学习的天数）
+        let current = startOfYear.clone();
         let heatmapData: HeatmapData[] = [];
         let maxCount = 0;
 
-        while (current.isSameOrBefore(end)) {
+        while (current.isSameOrBefore(endOfYear)) {
             let dateStr = current.format("YYYY-MM-DD");
             let count = dateMap.get(dateStr) || 0;
             heatmapData.push({
@@ -463,9 +472,99 @@ export class LocalDb extends DbProvider {
             longestStreak,
             currentStreak,
             data: heatmapData,
-            startDate,
-            endDate,
+            startDate: startOfYear.format("YYYY-MM-DD"),
+            endDate: endOfYear.format("YYYY-MM-DD"),
         };
+    }
+
+    /**
+     * 获取指定年份的月度统计
+     */
+    async getMonthlyStats(year: number): Promise<MonthlyStats[]> {
+        const monthlyData: MonthlyStats[] = [];
+
+        // 初始化12个月的数据
+        for (let month = 1; month <= 12; month++) {
+            monthlyData.push({
+                month,
+                year,
+                totalWords: 0,
+                daysWithActivity: 0
+            });
+        }
+
+        // 获取该年份的所有单词（按 createdDate）
+        const startOfYear = moment().year(year).startOf("year");
+        const endOfYear = moment().year(year).endOf("year");
+        const startUnix = startOfYear.unix();
+        const endUnix = endOfYear.unix();
+
+        // 按日期分组统计
+        const dateMap = new Map<string, number>();
+
+        await this.idb.expressions
+            .where("date")
+            .between(startUnix, endUnix, true, true)
+            .and(expr => expr.status > 0)
+            .each(expr => {
+                // 使用 createdDate 或从 date 字段转换
+                const dateStr = expr.createdDate || moment.unix(expr.date).format("YYYY-MM-DD");
+                const month = parseInt(dateStr.split("-")[1]);
+
+                monthlyData[month - 1].totalWords++;
+
+                // 统计有活动的天数
+                if (!dateMap.has(dateStr)) {
+                    dateMap.set(dateStr, 0);
+                    monthlyData[month - 1].daysWithActivity++;
+                }
+                dateMap.set(dateStr, dateMap.get(dateStr) + 1);
+            });
+
+        return monthlyData;
+    }
+
+    /**
+     * 获取多个年份的年度统计
+     */
+    async getYearlyStats(years: number[]): Promise<YearlyStats[]> {
+        const results: YearlyStats[] = [];
+
+        for (const year of years) {
+            const monthlyData = await this.getMonthlyStats(year);
+            const totalWords = monthlyData.reduce((sum, m) => sum + m.totalWords, 0);
+
+            // 计算最长连续学习天数（基于年视图逻辑）
+            const heatmapData = await this.getHeatmapData(year);
+
+            results.push({
+                year,
+                totalWords,
+                totalDays: monthlyData.reduce((sum, m) => sum + m.daysWithActivity, 0),
+                longestStreak: heatmapData.longestStreak,
+                monthlyData
+            });
+        }
+
+        return results;
+    }
+
+    /**
+     * 获取数据库中有数据的年份列表
+     */
+    async getAvailableYears(): Promise<number[]> {
+        const years = new Set<number>();
+
+        await this.idb.expressions
+            .where("status").above(0)
+            .each(expr => {
+                const year = expr.createdDate
+                    ? parseInt(expr.createdDate.split("-")[0])
+                    : moment.unix(expr.date).year();
+                years.add(year);
+            });
+
+        return Array.from(years).sort((a, b) => b - a); // 降序排列
     }
 
     /**
@@ -487,6 +586,8 @@ export class LocalDb extends DbProvider {
                 .where("id").anyOf([...expr.sentences.values()])
                 .toArray();
 
+            // 如果 createdDate/modifiedDate 不存在，从 date 字段推导
+            const fallbackDate = moment.unix(expr.date).format("YYYY-MM-DD");
             res.push({
                 expression: expr.expression,
                 meaning: expr.meaning,
@@ -495,8 +596,8 @@ export class LocalDb extends DbProvider {
                 notes: expr.notes,
                 sentences,
                 tags: [...expr.tags.keys()],
-                createdDate: expr.createdDate,
-                modifiedDate: expr.modifiedDate,
+                createdDate: expr.createdDate || fallbackDate,
+                modifiedDate: expr.modifiedDate || fallbackDate,
             });
         }
         return res;
@@ -521,6 +622,8 @@ export class LocalDb extends DbProvider {
                 .where("id").anyOf([...expr.sentences.values()])
                 .toArray();
 
+            // 如果 createdDate/modifiedDate 不存在，从 date 字段推导
+            const fallbackDate = moment.unix(expr.date).format("YYYY-MM-DD");
             res.push({
                 expression: expr.expression,
                 meaning: expr.meaning,
@@ -529,8 +632,8 @@ export class LocalDb extends DbProvider {
                 notes: expr.notes,
                 sentences,
                 tags: [...expr.tags.keys()],
-                createdDate: expr.createdDate,
-                modifiedDate: expr.modifiedDate,
+                createdDate: expr.createdDate || fallbackDate,
+                modifiedDate: expr.modifiedDate || fallbackDate,
             });
         }
         return res;
