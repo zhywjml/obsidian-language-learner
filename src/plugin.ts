@@ -57,6 +57,9 @@ import Global from "./views/Global.vue";
 
 
 
+// PDF Export Icon
+export const PDF_EXPORT_ICON = "file-down";
+
 export const FRONT_MATTER_KEY: string = "langr";
 
 // 导出图片路径前缀变量（用于阅读模式渲染本地图片）
@@ -544,6 +547,11 @@ export default class LanguageLearner extends Plugin {
         );
         this.addRibbonIcon(HEATMAP_ICON, t("Learning Heatmap"), (evt) => {
             this.activateView(HEATMAP_PANEL_VIEW, "right");
+        });
+
+        // 注册 PDF 导出按钮
+        this.addRibbonIcon(PDF_EXPORT_ICON, t("Export to PDF"), (evt) => {
+            this.exportToPDF();
         });
     }
 

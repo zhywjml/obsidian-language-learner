@@ -389,4 +389,19 @@ export default {
     "Oct": "Oct",
     "Nov": "Nov",
     "Dec": "Dec",
+
+    // PDF Export
+    "Export to PDF": "Export to PDF",
+    "Export PDF": "Export PDF",
+    "Title": "Title",
+    "Subtitle": "Subtitle",
+    "Date": "Date",
+    "Article title": "Article title",
+    "Optional": "Optional",
+    "Show phonetic": "Show phonetic",
+    "Words to include": "Words to include",
+    "Cancel": "Cancel",
+    "PDF export failed": "PDF export failed",
+    "Please select at least one word": "Please select at least one word",
+    "Preview": "Preview",
 };
