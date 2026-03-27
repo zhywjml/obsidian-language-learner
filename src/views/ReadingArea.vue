@@ -22,6 +22,12 @@
                             <path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
                         </svg>
                     </button>
+                    <!-- 导出按钮 -->
+                    <button class="export-btn" @click="showExportPanel = true" title="导出为 PDF">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                        </svg>
+                    </button>
                     <button v-if="page * pageSize < totalLines" class="finish-reading" @click="addIgnores">
                         结束阅读并转入下一页
                     </button>
@@ -49,7 +55,10 @@
                 </div>
             </div>
             <!-- 阅读区 -->
-            <div class="text-area" style="
+            <div
+                class="text-area"
+                ref="readingContentRef"
+                style="
                     flex: 1;
                     overflow: auto;
                     padding-left: 5%;
@@ -88,6 +97,13 @@
                     </div>
                 </div>
             </div>
+            <PdfExportPanel
+                :visible="showExportPanel"
+                :article-content="renderedText"
+                :article-element="readingContentRef"
+                :default-title="currentFileName"
+                @close="showExportPanel = false"
+            />
         </div>
     </div>
 </template>
@@ -112,6 +128,7 @@ import store from "@/store";
 import { ReadingView } from "./ReadingView";
 import CountBar from "./CountBar.vue";
 import DockPagination from "./DockPagination.vue";
+import PdfExportPanel from "./PdfExportPanel.vue";
 import { clearParseCache, clearASTCache } from "./parser";
 
 let vueThis = getCurrentInstance();
@@ -223,6 +240,16 @@ let page = view.lastPos
 
 // 样式设置面板
 let showStyleSettings = ref(false);
+const showExportPanel = ref(false);
+const readingContentRef = ref<HTMLElement | null>(null);
+
+const currentFileName = computed(() => {
+    const view = getCurrentInstance()?.appContext.config.globalProperties.view;
+    if (view?.file) {
+        return view.file.name.replace(/\.md$/i, '');
+    }
+    return 'Article';
+});
 
 // 从设置初始化样式值
 let fontSizeNum = ref(parseInt(plugin.settings.font_size) || 15);
@@ -620,6 +647,21 @@ if (plugin.constants.platform === "mobile") {
     &:hover {
         background: var(--background-secondary-alt);
         color: var(--text-normal);
+    }
+}
+
+.export-btn {
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    padding: 6px 10px;
+    cursor: pointer;
+    color: var(--text-normal);
+    margin-right: 8px;
+
+    &:hover {
+        background: var(--background-secondary-alt);
+        border-color: var(--interactive-accent);
     }
 }
 
