@@ -392,6 +392,7 @@ export default {
     "Show phonetic": "显示音标",
     "Words to include": "包含的单词",
     "Cancel": "取消",
+    "Please open an article in reading mode first": "请先打开一篇文章并切换到阅读模式",
     "PDF export failed": "PDF 导出失败",
     "Please select at least one word": "请至少选择一个单词",
     "Preview": "预览",

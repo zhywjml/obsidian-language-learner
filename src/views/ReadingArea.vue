@@ -93,6 +93,15 @@
             </div>
         </div>
     </div>
+
+    <!-- PDF 导出面板 -->
+    <PdfExportPanel
+        :visible="showExportPanel"
+        :article-content="renderedText"
+        :article-element="readingContentRef"
+        :default-title="currentFileName"
+        @close="showExportPanel = false"
+    />
 </template>
 
 <script setup lang="ts">
@@ -116,6 +125,7 @@ import { ReadingView } from "./ReadingView";
 import CountBar from "./CountBar.vue";
 import DockPagination from "./DockPagination.vue";
 import { clearParseCache, clearASTCache } from "./parser";
+import PdfExportPanel from "./PdfExportPanel.vue";
 
 let vueThis = getCurrentInstance();
 let view = vueThis.appContext.config.globalProperties.view as ReadingView;
@@ -226,6 +236,18 @@ let page = view.lastPos
 
 // 样式设置面板
 let showStyleSettings = ref(false);
+
+// PDF 导出面板
+const showExportPanel = ref(false);
+const readingContentRef = ref<HTMLElement | null>(null);
+
+const currentFileName = computed(() => {
+    const view = getCurrentInstance()?.appContext.config.globalProperties.view;
+    if (view?.file) {
+        return view.file.name.replace(/\.md$/i, '');
+    }
+    return 'Article';
+});
 
 // 从设置初始化样式值
 let fontSizeNum = ref(parseInt(plugin.settings.font_size) || 15);
@@ -375,6 +397,19 @@ if (plugin.constants.platform === "mobile") {
         }
     });
 }
+
+// PDF 导出事件监听
+function handleExportPDFEvent() {
+    showExportPanel.value = true;
+}
+
+onMounted(() => {
+    window.addEventListener('langr-export-pdf', handleExportPDFEvent);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('langr-export-pdf', handleExportPDFEvent);
+});
 
 </script>
 

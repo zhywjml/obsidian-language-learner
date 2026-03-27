@@ -401,6 +401,7 @@ export default {
     "Show phonetic": "Show phonetic",
     "Words to include": "Words to include",
     "Cancel": "Cancel",
+    "Please open an article in reading mode first": "Please open an article in reading mode first",
     "PDF export failed": "PDF export failed",
     "Please select at least one word": "Please select at least one word",
     "Preview": "Preview",
