@@ -400,40 +400,97 @@ export class SettingTab extends PluginSettingTab {
 
         containerEl.createEl("h4", { text: t("Dictionaries") });
 
-        let createDictSetting = (id: string, name: string, description: string) => {
-            new Setting(containerEl)
-                .setName(name)
-                .setDesc(description)
-                .addToggle(toggle => toggle
-                    .setValue(this.plugin.settings.dictionaries[id].enable)
-                    .onChange((value) => {
-                        this.plugin.settings.dictionaries[id].enable = value;
-                        this.plugin.store.dictsChange = !this.plugin.store.dictsChange;
-                        this.plugin.saveSettings();
-                    }))
-                .addDropdown(num => num
-                    .addOption("1", "1")
-                    .addOption("2", "2")
-                    .addOption("3", "3")
-                    .addOption("4", "4")
-                    .addOption("5", "5")
-                    .addOption("6", "6")
-                    .addOption("7", "7")
-                    .addOption("8", "8")
-                    .addOption("9", "9")
-                    .addOption("10", "10")
-                    .setValue(this.plugin.settings.dictionaries[id].priority.toString())
-                    .onChange(async (value: string) => {
-                        this.plugin.settings.dictionaries[id].priority = parseInt(value);
+        // 创建词典列表容器
+        const dictListContainer = containerEl.createDiv({ cls: "dict-list-container" });
+
+        // 渲染词典列表的函数
+        const renderDictList = () => {
+            dictListContainer.empty();
+
+            // 获取排序后的词典数组
+            const sortedDicts = Object.keys(dicts)
+                .map(id => ({ id, ...dicts[id as keyof typeof dicts] }))
+                .sort((a, b) => {
+                    const priorityA = this.plugin.settings.dictionaries[a.id]?.priority || 1;
+                    const priorityB = this.plugin.settings.dictionaries[b.id]?.priority || 1;
+                    return priorityA - priorityB;
+                });
+
+            sortedDicts.forEach((dict, index) => {
+                const setting = new Setting(dictListContainer)
+                    .setName(`${index + 1}. ${dict.name}`)
+                    .setDesc(dict.description);
+
+                // 启用/禁用开关
+                setting.addToggle(toggle => toggle
+                    .setValue(this.plugin.settings.dictionaries[dict.id].enable)
+                    .onChange(async (value) => {
+                        this.plugin.settings.dictionaries[dict.id].enable = value;
                         this.plugin.store.dictsChange = !this.plugin.store.dictsChange;
                         await this.plugin.saveSettings();
-                    })
-                );
+                    }));
+
+                // 上移按钮（不是第一个才显示）
+                if (index > 0) {
+                    setting.addExtraButton(button => button
+                        .setIcon("chevron-up")
+                        .setTooltip(t("Move Up"))
+                        .onClick(async () => {
+                            // 与上一个交换优先级
+                            const prevId = sortedDicts[index - 1].id;
+                            const currPriority = this.plugin.settings.dictionaries[dict.id].priority;
+                            const prevPriority = this.plugin.settings.dictionaries[prevId].priority;
+
+                            this.plugin.settings.dictionaries[dict.id].priority = prevPriority;
+                            this.plugin.settings.dictionaries[prevId].priority = currPriority;
+
+                            await this.plugin.saveSettings();
+                            this.plugin.store.dictsChange = !this.plugin.store.dictsChange;
+                            renderDictList(); // 重新渲染
+                        }));
+                }
+
+                // 下移按钮（不是最后一个才显示）
+                if (index < sortedDicts.length - 1) {
+                    setting.addExtraButton(button => button
+                        .setIcon("chevron-down")
+                        .setTooltip(t("Move Down"))
+                        .onClick(async () => {
+                            // 与下一个交换优先级
+                            const nextId = sortedDicts[index + 1].id;
+                            const currPriority = this.plugin.settings.dictionaries[dict.id].priority;
+                            const nextPriority = this.plugin.settings.dictionaries[nextId].priority;
+
+                            this.plugin.settings.dictionaries[dict.id].priority = nextPriority;
+                            this.plugin.settings.dictionaries[nextId].priority = currPriority;
+
+                            await this.plugin.saveSettings();
+                            this.plugin.store.dictsChange = !this.plugin.store.dictsChange;
+                            renderDictList(); // 重新渲染
+                        }));
+                }
+            });
         };
 
-        Object.keys(dicts).forEach((dict: keyof typeof dicts) => {
-            createDictSetting(dict, dicts[dict].name, dicts[dict].description);
-        });
+        // 初始渲染
+        renderDictList();
+
+        // 重置默认排序按钮
+        new Setting(containerEl)
+            .setName(t("Reset Order"))
+            .setDesc(t("Reset to default dictionary order"))
+            .addButton(button => button
+                .setButtonText(t("Reset"))
+                .onClick(async () => {
+                    // 恢复默认优先级
+                    Object.keys(dicts).forEach((id, index) => {
+                        this.plugin.settings.dictionaries[id].priority = index + 1;
+                    });
+                    await this.plugin.saveSettings();
+                    this.plugin.store.dictsChange = !this.plugin.store.dictsChange;
+                    renderDictList();
+                    new Notice(t("Dictionary order reset"));
+                }));
 
         new Setting(containerEl)
             .setName(t("Dictionary Height"))
