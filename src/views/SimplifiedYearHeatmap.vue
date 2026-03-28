@@ -147,23 +147,21 @@ onMounted(() => {
 }
 
 // 深色主题适配
-:global(.theme-dark) {
-    .heatmap-cell {
-        &.level-0 {
-            background-color: #2d333b;
-        }
-        &.level-1 {
-            background-color: #0e4429;
-        }
-        &.level-2 {
-            background-color: #006d32;
-        }
-        &.level-3 {
-            background-color: #26a641;
-        }
-        &.level-4 {
-            background-color: #39d353;
-        }
+:deep(.theme-dark) .heatmap-cell {
+    &.level-0 {
+        background-color: #2d333b;
+    }
+    &.level-1 {
+        background-color: #0e4429;
+    }
+    &.level-2 {
+        background-color: #006d32;
+    }
+    &.level-3 {
+        background-color: #26a641;
+    }
+    &.level-4 {
+        background-color: #39d353;
     }
 }
 </style>

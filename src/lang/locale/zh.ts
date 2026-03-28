@@ -380,20 +380,4 @@ export default {
     "Oct": "10月",
     "Nov": "11月",
     "Dec": "12月",
-
-    // PDF Export
-    "Export to PDF": "导出为 PDF",
-    "Export PDF": "导出 PDF",
-    "Title": "标题",
-    "Subtitle": "副标题",
-    "Date": "日期",
-    "Article title": "文章标题",
-    "Optional": "可选",
-    "Show phonetic": "显示音标",
-    "Words to include": "包含的单词",
-    "Cancel": "取消",
-    "Please open an article in reading mode first": "请先打开一篇文章并切换到阅读模式",
-    "PDF export failed": "PDF 导出失败",
-    "Please select at least one word": "请至少选择一个单词",
-    "Preview": "预览",
 };

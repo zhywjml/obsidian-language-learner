@@ -134,28 +134,26 @@ function selectMonth(monthData: MonthlyStats): void {
 }
 
 // 深色主题适配
-:global(.theme-dark) {
-    .month-card {
-        &.level-0 {
-            background: #2d333b;
-        }
-        &.level-1 {
-            background: #0e4429;
-        }
-        &.level-2 {
-            background: #006d32;
-        }
-        &.level-3 {
-            background: #26a641;
-        }
-        &.level-4 {
-            background: #39d353;
+:deep(.theme-dark) .month-card {
+    &.level-0 {
+        background: #2d333b;
+    }
+    &.level-1 {
+        background: #0e4429;
+    }
+    &.level-2 {
+        background: #006d32;
+    }
+    &.level-3 {
+        background: #26a641;
+    }
+    &.level-4 {
+        background: #39d353;
 
-            .month-name,
-            .month-count,
-            .month-days {
-                color: rgba(0, 0, 0, 0.9);
-            }
+        .month-name,
+        .month-count,
+        .month-days {
+            color: rgba(0, 0, 0, 0.9);
         }
     }
 }

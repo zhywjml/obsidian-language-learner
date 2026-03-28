@@ -231,11 +231,13 @@ useLoading(() => props.word, "mdict", onSearch, emits);
     h1, h2, h3, h4 {
         margin-top: 0.2em;
         margin-bottom: 0.2em;
+        color: var(--text-normal);
     }
 
     p {
         margin-top: 0.2em;
         margin-bottom: 0.2em;
+        color: var(--text-normal);
     }
 
     ul {
@@ -246,17 +248,106 @@ useLoading(() => props.word, "mdict", onSearch, emits);
 
     ul, ol, li {
         list-style-type: none;
+        color: var(--text-normal);
     }
 }
 
+// 深色主题适配
 .theme-dark #mdict-result {
-    .result .definition {
+    // 基础文字颜色
+    .word-title {
+        color: var(--text-normal);
+    }
+
+    .definition {
+        color: var(--text-normal);
+
+        // 强制子元素继承文字颜色（除了特殊标记）
+        * {
+            color: inherit;
+        }
+
+        // 保留链接颜色
+        a, .mdict-link {
+            color: var(--text-accent);
+
+            &:hover {
+                color: var(--text-accent-hover, var(--text-accent));
+            }
+        }
+
+        // 保留音标和词性标签的颜色
         .phonetic, .pron {
             color: var(--text-accent);
         }
 
         .pos {
             color: var(--interactive-accent);
+        }
+
+        // 示例句子使用次要颜色
+        .example {
+            color: var(--text-muted);
+        }
+
+        // 覆盖常见的硬编码黑色和深灰色
+        font[color="#000"],
+        font[color="#000000"],
+        span[style*="color:#000"],
+        span[style*="color: #000"],
+        span[style*="color:#000000" i],
+        span[style*="color: #000000" i],
+        span[style*="color:rgb(0,0,0)" i],
+        span[style*="color: rgb(0, 0, 0)" i],
+        [style*="color:#333"],
+        [style*="color: #333"],
+        [style*="color:#333333" i],
+        [style*="color: #333333" i],
+        [color="#333"],
+        [color="#333333"] {
+            color: var(--text-normal) !important;
+        }
+
+        // 覆盖硬编码白色背景
+        [style*="background-color:#fff" i],
+        [style*="background-color: #fff" i],
+        [style*="background-color:#ffffff" i],
+        [style*="background-color: #ffffff" i],
+        [style*="background:#fff" i],
+        [style*="background: #fff" i],
+        [bgcolor="#ffffff"],
+        [bgcolor="#fff"] {
+            background-color: transparent !important;
+        }
+
+        // 图片适度调暗，避免刺眼
+        img {
+            opacity: 0.9;
+            filter: brightness(0.95);
+        }
+
+        // 表格样式适配
+        table {
+            border-color: var(--background-modifier-border);
+
+            td, th {
+                border-color: var(--background-modifier-border);
+            }
+
+            th {
+                background-color: var(--background-secondary);
+            }
+        }
+    }
+
+    // 建议列表深色模式
+    .not-found .suggestions {
+        ul li {
+            color: var(--text-accent);
+
+            &:hover {
+                background-color: var(--background-modifier-hover);
+            }
         }
     }
 }
