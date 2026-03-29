@@ -321,60 +321,211 @@ async function addIgnores() {
 }
 
 let reading = ref(null);
-let prevEl: HTMLElement = null;
-if (plugin.constants.platform === "mobile") {
-    useEvent(reading, "click", (e) => {
-        let target = e.target as HTMLElement;
-        if (target.hasClass("word") || target.hasClass("phrase")) {
-            e.preventDefault();
-            e.stopPropagation();
-            if (prevEl) {
-                let selectSpan = view.wrapSelect(prevEl, target);
-                if (selectSpan) {
-                    plugin.queryWord(
-                        selectSpan.textContent,
-                        selectSpan,
-                        { x: e.pageX, y: e.pageY }
-                    );
-                }
-                prevEl = null;
-            } else {
-                prevEl = target;
+
+// 选择状态管理
+interface SelectionState {
+    isActive: boolean;
+    isMultiSelect: boolean;
+    startEl: HTMLElement | null;
+    currentEl: HTMLElement | null;
+    startX: number;
+    startY: number;
+    startTime: number;
+    longPressTimer: ReturnType<typeof setTimeout> | null;
+}
+
+let selectState: SelectionState = {
+    isActive: false,
+    isMultiSelect: false,
+    startEl: null,
+    currentEl: null,
+    startX: 0,
+    startY: 0,
+    startTime: 0,
+    longPressTimer: null
+};
+
+// 节流函数 - 用于 pointermove
+function throttle<T extends (...args: any[]) => void>(fn: T, delay: number): (...args: Parameters<T>) => void {
+    let lastTime = 0;
+    return function (...args: Parameters<T>) {
+        const now = Date.now();
+        if (now - lastTime >= delay) {
+            lastTime = now;
+            fn(...args);
+        }
+    };
+}
+
+// 判断是否可选择的元素
+function isSelectableElement(el: HTMLElement): boolean {
+    return el.hasClass("word") || el.hasClass("phrase") || el.hasClass("select");
+}
+
+// 清理选择状态
+function clearSelectionState() {
+    if (selectState.longPressTimer) {
+        clearTimeout(selectState.longPressTimer);
+        selectState.longPressTimer = null;
+    }
+    view.clearPreview();
+    selectState = {
+        isActive: false,
+        isMultiSelect: false,
+        startEl: null,
+        currentEl: null,
+        startX: 0,
+        startY: 0,
+        startTime: 0,
+        longPressTimer: null
+    };
+}
+
+// pointerdown 事件处理
+useEvent(reading, "pointerdown", (e: PointerEvent) => {
+    const target = e.target as HTMLElement;
+
+    if (!isSelectableElement(target)) {
+        // 点击非单词区域，清除现有选择
+        view.removeSelect();
+        return;
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    // 捕获指针，确保后续事件都在此元素上触发
+    (e.currentTarget as HTMLElement)?.setPointerCapture?.(e.pointerId);
+
+    // 初始化选择状态
+    selectState.isActive = true;
+    selectState.startEl = target;
+    selectState.currentEl = target;
+    selectState.startX = e.clientX;
+    selectState.startY = e.clientY;
+    selectState.startTime = Date.now();
+
+    // 设置长按定时器 - 200ms后进入多选模式
+    selectState.longPressTimer = setTimeout(() => {
+        if (selectState.isActive && !selectState.isMultiSelect) {
+            selectState.isMultiSelect = true;
+            // 开始预览高亮
+            view.previewSelect(selectState.startEl, selectState.startEl);
+        }
+    }, 200);
+});
+
+// pointermove 事件处理（节流16ms ≈ 60fps）
+const handlePointerMove = throttle((e: PointerEvent) => {
+    if (!selectState.isActive || !selectState.startEl) return;
+
+    const moveDistance = Math.sqrt(
+        Math.pow(e.clientX - selectState.startX, 2) +
+        Math.pow(e.clientY - selectState.startY, 2)
+    );
+
+    // 如果移动距离超过10px，提前进入多选模式
+    if (!selectState.isMultiSelect && moveDistance > 10) {
+        selectState.isMultiSelect = true;
+        if (selectState.longPressTimer) {
+            clearTimeout(selectState.longPressTimer);
+            selectState.longPressTimer = null;
+        }
+    }
+
+    // 在多选模式下，更新选择范围
+    if (selectState.isMultiSelect) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // 使用 elementFromPoint 获取当前指针下的元素
+        const elementUnderPointer = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement;
+
+        if (elementUnderPointer && isSelectableElement(elementUnderPointer)) {
+            // 检查是否在同一句话中
+            const startParent = selectState.startEl.matchParent(".stns");
+            const currentParent = elementUnderPointer.matchParent(".stns");
+
+            if (startParent && currentParent && startParent === currentParent) {
+                selectState.currentEl = elementUnderPointer;
+                view.previewSelect(selectState.startEl, selectState.currentEl);
             }
-        } else {
-            view.removeSelect();
-            prevEl = null;
+        }
+    }
+}, 16);
+
+useEvent(reading, "pointermove", handlePointerMove);
+
+// pointerup 事件处理
+useEvent(reading, "pointerup", (e: PointerEvent) => {
+    if (!selectState.isActive) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const duration = Date.now() - selectState.startTime;
+    const wasMultiSelect = selectState.isMultiSelect;
+
+    if (!wasMultiSelect) {
+        // 快速点击模式（非多选）
+        if (selectState.longPressTimer) {
+            clearTimeout(selectState.longPressTimer);
+            selectState.longPressTimer = null;
         }
 
-    });
-} else {
-    useEvent(reading, "pointerdown", (e) => {
-        let target = e.target as HTMLElement;
-        if (target.hasClass("word") || target.hasClass("phrase") || target.hasClass("select")) {
-            prevEl = target;
-        }
-    });
-    useEvent(reading, "pointerup", (e) => {
-        let target = e.target as HTMLElement;
-        if (target.hasClass("word") || target.hasClass("phrase") || target.hasClass("select")) {
-            e.preventDefault();
-            e.stopPropagation();
-            if (prevEl) {
-                let selectSpan = view.wrapSelect(prevEl, target);
-                if (selectSpan) {
-                    plugin.queryWord(
-                        selectSpan.textContent,
-                        selectSpan,
-                        { x: e.pageX, y: e.pageY }
-                    );
-                }
-                prevEl = null;
-            }
-        } else {
+        // 点击查询单个单词
+        if (selectState.startEl) {
+            const text = selectState.startEl.textContent;
             view.removeSelect();
+            plugin.queryWord(
+                text,
+                selectState.startEl,
+                { x: e.pageX, y: e.pageY }
+            );
         }
-    });
-}
+    } else {
+        // 多选模式结束 - 确认选择
+        const finalTarget = e.target as HTMLElement;
+
+        // 优先使用最后有效的 currentEl，否则使用当前指针下的元素
+        let endEl = selectState.currentEl;
+        if (!endEl || !isSelectableElement(endEl)) {
+            if (isSelectableElement(finalTarget)) {
+                endEl = finalTarget;
+            } else {
+                // 如果没有有效的结束元素，使用起始元素
+                endEl = selectState.startEl;
+            }
+        }
+
+        // 清理预览高亮
+        view.clearPreview();
+
+        // 执行正式选择包装
+        const selectSpan = view.wrapSelect(selectState.startEl, endEl);
+        if (selectSpan) {
+            plugin.queryWord(
+                selectSpan.textContent,
+                selectSpan,
+                { x: e.pageX, y: e.pageY }
+            );
+        }
+    }
+
+    clearSelectionState();
+});
+
+// pointercancel 事件处理（触摸中断等情况）
+useEvent(reading, "pointercancel", () => {
+    clearSelectionState();
+});
+
+// pointerleave 事件处理
+useEvent(reading, "pointerleave", () => {
+    if (selectState.isActive && !selectState.isMultiSelect) {
+        clearSelectionState();
+    }
+});
 
 </script>
 
@@ -459,6 +610,20 @@ if (plugin.constants.platform === "mobile") {
             &:hover {
                 border: 1px solid green;
             }
+        }
+
+        // 临时选择预览状态
+        span.selecting {
+            background-color: rgba(144, 238, 144, 0.25);
+            border: 1px dashed #4caf50;
+            border-radius: 4px;
+            transition: background-color 0.1s ease;
+        }
+
+        // 选择起始点标识
+        span.selecting-start {
+            border: 2px solid #4caf50;
+            border-radius: 4px;
         }
 
         // Markdown 渲染元素样式

@@ -1013,6 +1013,16 @@
 #langr-reading .text-area .select:hover {
   border: 1px solid green;
 }
+#langr-reading .text-area span.selecting {
+  background-color: #90ee9040;
+  border: 1px dashed #4caf50;
+  border-radius: 4px;
+  transition: background-color .1s ease;
+}
+#langr-reading .text-area span.selecting-start {
+  border: 2px solid #4caf50;
+  border-radius: 4px;
+}
 #langr-reading .text-area h1,
 #langr-reading .text-area h2,
 #langr-reading .text-area h3,

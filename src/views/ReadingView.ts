@@ -246,6 +246,86 @@ export class ReadingView extends TextFileView {
         });
     }
 
+    /**
+     * 预览选择 - 高亮显示选择范围但不改变DOM结构
+     * @param elStart 起始元素
+     * @param elEnd 结束元素
+     * @returns 是否成功添加预览高亮
+     */
+    previewSelect(elStart: HTMLElement, elEnd: HTMLElement): boolean {
+        this.clearPreview();
+        if (!elStart.matchParent(".stns") ||
+            !elEnd.matchParent(".stns") ||
+            elStart.parentElement !== elEnd.parentElement) {
+            return false;
+        }
+
+        const parent = elStart.parentElement;
+        const children = Array.from(parent.children);
+        const startIdx = children.indexOf(elStart);
+        const endIdx = children.indexOf(elEnd);
+
+        if (startIdx === -1 || endIdx === -1) return false;
+
+        const minIdx = Math.min(startIdx, endIdx);
+        const maxIdx = Math.max(startIdx, endIdx);
+
+        for (let i = minIdx; i <= maxIdx; i++) {
+            const el = children[i] as HTMLElement;
+            if (el.hasClass("word") || el.hasClass("phrase")) {
+                el.addClass("selecting");
+                if (i === startIdx) {
+                    el.addClass("selecting-start");
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * 清理预览高亮
+     */
+    clearPreview() {
+        let selecting = this.contentEl.querySelectorAll(".selecting, .selecting-start");
+        selecting.forEach((el: HTMLElement) => {
+            el.removeClass("selecting");
+            el.removeClass("selecting-start");
+        });
+    }
+
+    /**
+     * 获取两个元素之间的所有单词元素
+     * @param start 起始元素
+     * @param end 结束元素
+     * @returns 元素数组
+     */
+    getElementsBetween(start: HTMLElement, end: HTMLElement): HTMLElement[] {
+        if (!start.parentElement || start.parentElement !== end.parentElement) {
+            return [];
+        }
+
+        const parent = start.parentElement;
+        const children = Array.from(parent.children);
+        const startIdx = children.indexOf(start);
+        const endIdx = children.indexOf(end);
+
+        if (startIdx === -1 || endIdx === -1) return [];
+
+        const minIdx = Math.min(startIdx, endIdx);
+        const maxIdx = Math.max(startIdx, endIdx);
+        const result: HTMLElement[] = [];
+
+        for (let i = minIdx; i <= maxIdx; i++) {
+            const el = children[i] as HTMLElement;
+            if (el.hasClass("word") || el.hasClass("phrase")) {
+                result.push(el);
+            }
+        }
+
+        return result;
+    }
+
     initHeaderButtons() {
         this.addAction("book", t("Return to Markdown"), () => {
             this.backToMarkdown();
